@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -38,6 +38,7 @@ import { fetchDashboardData } from "../features/dashboard/dashboardSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { BaseLoading } from "../components/BaseLoading";
 import { getBalanceHistory, getReport } from "../features/credits/creditSlice";
+import { RenewalPopup } from "../components/RenewalPopup";
 
 export const Dashboard = () => {
   const navigate = useNavigate();
@@ -67,6 +68,25 @@ export const Dashboard = () => {
   const { profile } = useSelector((state) => state.auth);
   const UserProfile = profile || {};
 
+  const [isRenewalPopupOpen, setIsRenewalPopupOpen] = useState(false);
+
+  useEffect(() => {
+    const daysUntilRenewal = 0 //UserProfile?.activePackage?.daysUntilRenewal;
+    if (daysUntilRenewal !== undefined && daysUntilRenewal !== null && daysUntilRenewal !== "") {
+      const days = Number(daysUntilRenewal);
+      if (!isNaN(days) /* && days <= 30 */) { // TEMP FOR TESTING: Removed days <= 30 check
+        // check local storage to only show once per day
+        const todayStr = new Date().toDateString();
+        const lastShownDate = localStorage.getItem("renewalPopupLastShown");
+
+        // TEMP FOR TESTING: Commented out the date check so it opens on every reload
+        // if (lastShownDate !== todayStr) {
+        setIsRenewalPopupOpen(true);
+        localStorage.setItem("renewalPopupLastShown", todayStr);
+        // }
+      }
+    }
+  }, [UserProfile?.activePackage?.daysUntilRenewal]);
   // Fallback stats
   const StatsData = [
     {
@@ -107,6 +127,8 @@ export const Dashboard = () => {
 
   return (
     <div className="container max-w-7xl mx-auto px-4">
+      <RenewalPopup plan={UserProfile?.activePackage} isOpen={isRenewalPopupOpen} onOpenChange={setIsRenewalPopupOpen} />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-3 sm:gap-0">
         <div className="text-center sm:text-left">
@@ -219,17 +241,21 @@ export const Dashboard = () => {
                     Active Package
                   </CardTitle>
                 </div>
-                <Badge
-                  className={`px-3 py-1 rounded-full font-medium ${
-                    new Date(UserProfile.activePackage.endDate) > new Date()
+                <div className="flex items-center gap-2">
+                  <Badge
+                    className={`px-3 py-1 rounded-full font-medium ${new Date(UserProfile.activePackage.endDate) > new Date()
                       ? "bg-green-100 text-green-800"
                       : "bg-red-100 text-red-800"
-                  }`}
-                >
-                  {new Date(UserProfile.activePackage.endDate) > new Date()
-                    ? "Active"
-                    : "Expired"}
-                </Badge>
+                      }`}
+                  >
+                    {new Date(UserProfile.activePackage.endDate) > new Date()
+                      ? "Active"
+                      : "Expired"}
+                  </Badge>
+                  <Button size="sm" variant="outline" className="h-7 text-xs border-primary text-primary hover:bg-primary/10" onClick={() => setIsRenewalPopupOpen(true)}>
+                    Renew
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4 px-4">
                 {/* Package Info */}
@@ -254,8 +280,8 @@ export const Dashboard = () => {
                     <p className="text-sm mt-1">
                       {UserProfile.activePackage.startDate
                         ? new Date(
-                            UserProfile.activePackage.startDate
-                          ).toLocaleDateString()
+                          UserProfile.activePackage.startDate
+                        ).toLocaleDateString()
                         : "-"}
                     </p>
                   </div>
@@ -269,8 +295,8 @@ export const Dashboard = () => {
                     <p className="text-sm mt-1">
                       {UserProfile.activePackage.endDate
                         ? new Date(
-                            UserProfile.activePackage.endDate
-                          ).toLocaleDateString()
+                          UserProfile.activePackage.endDate
+                        ).toLocaleDateString()
                         : "-"}
                     </p>
                   </div>
@@ -284,8 +310,8 @@ export const Dashboard = () => {
                     <p className="text-sm mt-1">
                       {UserProfile.activePackage.nextRenewalDate
                         ? new Date(
-                            UserProfile.activePackage.nextRenewalDate
-                          ).toLocaleDateString()
+                          UserProfile.activePackage.nextRenewalDate
+                        ).toLocaleDateString()
                         : "-"}
                     </p>
                   </div>

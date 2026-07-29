@@ -1,8 +1,8 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { AlertTriangle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getProfile } from "../features/auth/authSlice";
+import { RenewalPopup } from "../components/RenewalPopup";
+import { BaseLoading } from "../components/BaseLoading";
 
 interface SubscriptionGuardProps {
     children: React.ReactNode;
@@ -24,38 +24,36 @@ export default function SubscriptionGuard({ children }: SubscriptionGuardProps) 
         }
     }, [dispatch, token]);
 
-    // Only show dialog if there is no package or status === 0
-    const showDialog = profile?.activePackage === null || profile?.activePackage?.status === 0;
+    const calculateDaysLeft = () => {
+        if (profile?.activePackage?.endDate) {
+            const end = new Date(profile.activePackage.endDate);
+            const now = new Date();
+            if (!isNaN(end.getTime())) {
+                const diffTime = Math.max(end.getTime() - now.getTime(), 0);
+                return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            }
+        }
+        return null;
+    };
 
-    // While checking/loading, render children
-    if (!checked) return <>{children}</>;
+    const daysLeft = calculateDaysLeft();
+
+    // Show blocking dialog if no package, status is 0, or daysLeft is 0
+    const isExpired = profile?.activePackage === null || profile?.activePackage?.status === 0 || (daysLeft !== null && daysLeft <= 0);
+
+    // While checking/loading, render a loader instead of children
+    if (!checked) return <BaseLoading message="Checking subscription..." />;
 
     return (
         <>
             {children}
 
-            {showDialog && (
-                <Dialog open={true} onOpenChange={() => {}}>
-                    <DialogContent className="sm:max-w-md bg-gradient-to-br from-red-50 to-white border-red-200 [&>button]:hidden">
-                        <DialogHeader className="flex flex-col items-center gap-2">
-                            <div className="p-4 rounded-full bg-red-100 text-red-600">
-                                <AlertTriangle className="h-16 w-16" />
-                            </div>
-                            <DialogTitle className="text-red-600 font-bold text-center">
-                                Subscription Expired
-                            </DialogTitle>
-                        </DialogHeader>
-
-                        <div className="mt-4 space-y-3 text-center">
-                            <p className="text-sm text-gray-600">
-                                Your subscription has expired. Please renew to continue accessing all features.
-                            </p>
-                            <p className="text-xs text-gray-500 italic">
-                                Contact support if you need assistance.
-                            </p>
-                        </div>
-                    </DialogContent>
-                </Dialog>
+            {isExpired && (
+                <RenewalPopup
+                    plan={profile?.activePackage}
+                    isOpen={true}
+                    onOpenChange={() => { }}
+                />
             )}
         </>
     );

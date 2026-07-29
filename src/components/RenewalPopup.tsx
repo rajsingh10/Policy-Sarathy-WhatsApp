@@ -9,8 +9,10 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Phone, Mail, Zap, Calendar, MessageSquare, FileText, Clock, ShoppingCart } from "lucide-react";
+import { Phone, Mail, Zap, Calendar, MessageSquare, FileText, Clock, ShoppingCart, LogOut } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 interface RenewalPopupProps {
     isOpen?: boolean;
@@ -21,13 +23,6 @@ interface RenewalPopupProps {
 
 export const RenewalPopup: React.FC<RenewalPopupProps> = ({ isOpen, onOpenChange, trigger, plan }) => {
     const calculateDaysLeft = () => {
-        // check if plan.daysUntilRenewal is a valid number
-        if (plan?.daysUntilRenewal !== null && plan?.daysUntilRenewal !== undefined && plan?.daysUntilRenewal !== "") {
-            const days = Number(plan.daysUntilRenewal);
-            if (!isNaN(days)) return days;
-        }
-
-        // fallback to calculation using endDate
         if (plan?.endDate) {
             const end = new Date(plan.endDate);
             const now = new Date();
@@ -40,18 +35,31 @@ export const RenewalPopup: React.FC<RenewalPopupProps> = ({ isOpen, onOpenChange
     };
 
     const daysLeft = calculateDaysLeft();
+    // const daysLeft = -5;
+
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+
+
+    const handleOpenChange = (open: boolean) => {
+        if (daysLeft <= 0 && !open) {
+            return;
+        }
+        onOpenChange?.(open);
+    };
 
     return (
-        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+        <Dialog open={isOpen} onOpenChange={handleOpenChange}>
             {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
-            <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden">
+            <DialogContent className={`sm:max-w-[600px] p-0 overflow-hidden ${daysLeft <= 0 ? '[&>button]:hidden' : ''}`}>
                 <div className="bg-primary/5 p-6 border-b border-primary/10">
                     <DialogHeader>
                         <DialogTitle className="text-2xl font-bold flex items-center gap-2">
-                            <Zap className="w-6 h-6 text-primary fill-primary/20" />
-                            {plan?.packageName || "Small Business"} Plan Renewal
+                            <Zap className={`w-6 h-6 ${daysLeft > 0 ? 'text-primary fill-primary/20' : 'text-red-500 fill-red-500/20'}`} />
+                            {plan?.packageName || "Small Business"} {daysLeft > 0 ? "Plan Renewal" : "Plan Expired"}
                         </DialogTitle>
                         <DialogDescription className="text-base mt-2">
+                            {daysLeft <= 0 && <strong className="text-red-500 block mb-2">Your subscription has expired. Please renew to continue using the services.</strong>}
                             {plan?.packageDesc || "15K Contacts 35K Messages 5 Templates Manual & Auto Schedule Analytics & Reports Free Support"}
                         </DialogDescription>
                     </DialogHeader>
@@ -80,17 +88,17 @@ export const RenewalPopup: React.FC<RenewalPopupProps> = ({ isOpen, onOpenChange
                         <div className="flex flex-col items-center justify-center p-3 bg-orange-50/50 rounded-xl">
                             <Clock className="w-5 h-5 text-orange-500 mb-2" />
                             <span className="text-xs text-muted-foreground font-medium">Days Left</span>
-                            <span className="font-bold">{daysLeft}</span>
+                            <span className="font-bold">{daysLeft > 0 ? daysLeft : 0}</span>
                         </div>
                     </div>
 
                     <div className="bg-muted/50 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                        <div className="flex flex-col gap-1 text-sm">
-                            <div><span className="font-semibold text-muted-foreground">Start:</span> {plan?.startDate ? new Date(plan.startDate).toLocaleDateString() : 'N/A'}</div>
-                            <div><span className="font-semibold text-muted-foreground">End:</span> {plan?.endDate ? new Date(plan.endDate).toLocaleDateString() : 'N/A'}</div>
+                        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+                            <div><span className="font-semibold text-muted-foreground">Start:</span> {plan?.startDate ? new Date(plan.startDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : 'N/A'}</div>
+                            <div><span className="font-semibold text-muted-foreground">End:</span> {plan?.endDate ? new Date(plan.endDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : 'N/A'}</div>
                         </div>
-                        <Badge variant="outline" className={`px-3 py-1 ${daysLeft > 0 ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
-                            {daysLeft} days remaining
+                        <Badge variant="outline" className={`px-3 py-1 whitespace-nowrap ${daysLeft > 0 ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
+                            {daysLeft > 0 ? `${daysLeft} days remaining` : 'Plan Expired'}
                         </Badge>
                     </div>
 
@@ -109,9 +117,7 @@ export const RenewalPopup: React.FC<RenewalPopupProps> = ({ isOpen, onOpenChange
                     </div>
                 </div>
 
-                <DialogFooter className="bg-muted/50 p-4 border-t border-border sm:justify-end items-center">
-                    <Button variant="ghost" onClick={() => onOpenChange?.(false)}>Close</Button>
-                </DialogFooter>
+
             </DialogContent>
         </Dialog>
     );

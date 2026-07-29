@@ -70,23 +70,32 @@ export const Dashboard = () => {
 
   const [isRenewalPopupOpen, setIsRenewalPopupOpen] = useState(false);
 
+  const calculateDaysLeft = (endDateStr) => {
+    if (!endDateStr) return 0;
+    const end = new Date(endDateStr);
+    const now = new Date();
+    if (isNaN(end.getTime())) return 0;
+    const diffTime = Math.max(end.getTime() - now.getTime(), 0);
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+  const calculatedDaysLeft = calculateDaysLeft(UserProfile?.activePackage?.endDate);
+
   useEffect(() => {
-    const daysUntilRenewal = 0 //UserProfile?.activePackage?.daysUntilRenewal;
-    if (daysUntilRenewal !== undefined && daysUntilRenewal !== null && daysUntilRenewal !== "") {
-      const days = Number(daysUntilRenewal);
-      if (!isNaN(days) /* && days <= 30 */) { // TEMP FOR TESTING: Removed days <= 30 check
+    const endDateStr = UserProfile?.activePackage?.endDate;
+    if (endDateStr) {
+      const days = calculateDaysLeft(endDateStr);
+      if (days > 0 && days <= 30) {
         // check local storage to only show once per day
         const todayStr = new Date().toDateString();
         const lastShownDate = localStorage.getItem("renewalPopupLastShown");
 
-        // TEMP FOR TESTING: Commented out the date check so it opens on every reload
-        // if (lastShownDate !== todayStr) {
-        setIsRenewalPopupOpen(true);
-        localStorage.setItem("renewalPopupLastShown", todayStr);
-        // }
+        if (lastShownDate !== todayStr) {
+          setIsRenewalPopupOpen(true);
+          localStorage.setItem("renewalPopupLastShown", todayStr);
+        }
       }
     }
-  }, [UserProfile?.activePackage?.daysUntilRenewal]);
+  }, [UserProfile?.activePackage?.endDate]);
   // Fallback stats
   const StatsData = [
     {
@@ -252,9 +261,9 @@ export const Dashboard = () => {
                       ? "Active"
                       : "Expired"}
                   </Badge>
-                  <Button size="sm" variant="outline" className="h-7 text-xs border-primary text-primary hover:bg-primary/10" onClick={() => setIsRenewalPopupOpen(true)}>
-                    Renew
-                  </Button>
+                  {/* <Button size="sm" variant="outline" className="h-7 text-xs border-primary text-primary hover:bg-primary/10" onClick={() => setIsRenewalPopupOpen(true)}>
+                      Renew
+                    </Button> */}
                 </div>
               </CardHeader>
               <CardContent className="space-y-4 px-4">
@@ -371,7 +380,7 @@ export const Dashboard = () => {
                     <Calendar className="w-5 h-5 text-indigo-500" />
                     <h3 className="text-sm font-semibold">
                       Days Until Renewal -{" "}
-                      {UserProfile.activePackage.daysUntilRenewal || 0} days
+                      {calculatedDaysLeft} days
                     </h3>
                   </div>
                 </div>

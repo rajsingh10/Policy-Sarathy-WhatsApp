@@ -88,8 +88,68 @@ export const updateConversationStatus = createAsyncThunk(
     "conversations/updateStatus",
     async ({ token, id, status }, thunkAPI) => {
         try {
-            const res = await apiService.put(`${API.ENDPOINTS.UPDATE_CONVERSATION_STATUS}/${id}/status`,
+            const res = await apiService.post(`whatsapp/inbox/${id}/status`,
                 { status },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            return res.data;
+        } catch (err) {
+            return thunkAPI.rejectWithValue(err.response?.data || err.message);
+        }
+    }
+);
+
+// Assign conversation
+export const assignConversation = createAsyncThunk(
+    "conversations/assign",
+    async ({ token, id, user_id }, thunkAPI) => {
+        try {
+            const res = await apiService.post(`whatsapp/inbox/${id}/assign`,
+                { user_id },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            return res.data;
+        } catch (err) {
+            return thunkAPI.rejectWithValue(err.response?.data || err.message);
+        }
+    }
+);
+
+// Tag conversation
+export const tagConversation = createAsyncThunk(
+    "conversations/tag",
+    async ({ token, id, tag }, thunkAPI) => {
+        try {
+            const res = await apiService.post(`whatsapp/inbox/${id}/tag`,
+                { tag },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            return { id, tag, data: res.data };
+        } catch (err) {
+            return thunkAPI.rejectWithValue(err.response?.data || err.message);
+        }
+    }
+);
+
+// Create Lead
+export const createLead = createAsyncThunk(
+    "conversations/createLead",
+    async ({ token, id, name, email }, thunkAPI) => {
+        try {
+            const res = await apiService.post(`whatsapp/inbox/${id}/create-lead`,
+                { name, email },
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -123,12 +183,15 @@ export const fetchConversationStats = createAsyncThunk(
 // Send message in conversation
 export const sendConversationMessage = createAsyncThunk(
     "conversations/sendMessage",
-    async ({ token, conversationId, message, image, file, type = "text", media_url, media_type, media_filename }, thunkAPI) => {
+    async ({ token, conversationId, message, image, file, type = "text", media_url, media_type, media_filename, reply_to_message_id, endpoint }, thunkAPI) => {
         try {
             const formData = new FormData();
             formData.append("conversation_id", conversationId);
             formData.append("message", message || ""); // Ensure message is never undefined
             formData.append("type", type);
+            if (reply_to_message_id) {
+                formData.append("reply_to_message_id", reply_to_message_id);
+            }
 
             if (file) {
                 // Send binary file when available (for media types)
@@ -150,7 +213,9 @@ export const sendConversationMessage = createAsyncThunk(
                 formData.append("media_filename", media_filename);
             }
 
-            const res = await apiService.post(`${API.ENDPOINTS.CONVERSATIONS_MESSAGES}`, formData, {
+            const targetEndpoint = endpoint ? endpoint.replace(/^\/api\//, '') : API.ENDPOINTS.CONVERSATIONS_MESSAGES;
+
+            const res = await apiService.post(targetEndpoint, formData, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     "Content-Type": "multipart/form-data",

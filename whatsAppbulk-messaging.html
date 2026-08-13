@@ -1,0 +1,1054 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WhatsApp Bulk Messaging Documentation</title>
+  <meta name="description" content="Complete documentation for WhatsApp Bulk Messaging Web Panel.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f5f5;
+      --surface: #fff;
+      --text: #121826;
+      --muted: #73717a;
+      --border: #e5e2df;
+      --accent: #ef4e2a;
+      --accent-2: #d93d1d;
+      --accent-soft: #fff0ec;
+      --accent-border: #ffc7b8;
+      --success-soft: #e9f8ef;
+      --warning-soft: #fff7e6;
+      --code: #1f2329;
+      --nav-h: 72px;
+      --side-w: 292px;
+      --toc-w: 238px;
+      --bs-primary: var(--accent);
+      --bs-primary-rgb: 239, 78, 42;
+      --bs-link-color: var(--accent);
+      --bs-link-hover-color: var(--accent-2);
+    }
+
+    [data-bs-theme="dark"] {
+      --bg: #151515;
+      --surface: #1e1e20;
+      --text: #f5f5f5;
+      --muted: #b4b0ad;
+      --border: #343235;
+      --accent-soft: #351c15;
+      --accent-border: #7c3524;
+      --success-soft: #123523;
+      --warning-soft: #3b2a0e;
+      --code: #101010;
+      --hero-glow-1: rgba(239, 78, 42, .09);
+      --hero-glow-2: rgba(239, 78, 42, .06);
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 96px;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Manrope", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 15.5px;
+      font-weight: 500;
+      line-height: 1.72;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    .navbar-brand,
+    .side-heading {
+      font-family: "Manrope", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    a:hover {
+      color: var(--accent-2);
+    }
+
+    .doc-nav {
+      min-height: var(--nav-h);
+      border-bottom: 1px solid var(--border);
+      background: color-mix(in srgb, var(--surface) 92%, transparent);
+      backdrop-filter: blur(16px);
+      z-index: 1040;
+    }
+
+    .brand-mark {
+      width: 90px;
+      display: block;
+      object-fit: contain;
+    }
+
+    .search-wrap {
+      max-width: 520px;
+      width: min(44vw, 520px);
+    }
+
+    .search-wrap .form-control {
+      border-color: var(--border);
+      background: var(--bg);
+      padding-left: 2.45rem;
+      border-radius: 12px;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: .9rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+    }
+
+    .layout {
+      max-width: 1480px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: var(--side-w) minmax(0, 1fr) var(--toc-w);
+      gap: 28px;
+      padding: 28px 24px 64px;
+    }
+
+    .left-sidebar,
+    .right-toc {
+      position: sticky;
+      top: calc(var(--nav-h) + 20px);
+      align-self: start;
+      max-height: calc(100vh - var(--nav-h) - 36px);
+      overflow: auto;
+    }
+
+    .panel,
+    .section,
+    .hero {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+    }
+
+    .panel {
+      padding: 14px;
+    }
+
+    .side-link,
+    .toc-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      padding: 7px 10px;
+      border-radius: 9px;
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .side-link:hover,
+    .side-link.active,
+    .toc-link:hover,
+    .toc-link.active {
+      color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .side-heading {
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      font-weight: 700;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 9px 10px;
+      border-radius: 9px;
+    }
+
+    .side-heading:hover {
+      background: rgba(100, 116, 139, .08);
+    }
+
+    .hero {
+      padding: clamp(28px, 5vw, 56px);
+      margin-bottom: 24px;
+      background:
+        radial-gradient(circle at 18% 0%, var(--hero-glow-1, rgba(239, 78, 42, .12)), transparent 34%),
+        radial-gradient(circle at 88% 18%, var(--hero-glow-2, rgba(255, 199, 184, .42)), transparent 30%),
+        var(--surface);
+    }
+
+    .hero h1 {
+      max-width: 980px;
+      font-size: clamp(2rem, 2.5vw, 4rem);
+      line-height: 1.08;
+      letter-spacing: 0;
+      font-weight: 800;
+    }
+
+    .section {
+      padding: clamp(22px, 3vw, 38px);
+      margin-bottom: 22px;
+    }
+
+    .section h2 {
+      font-size: clamp(1.55rem, 2.4vw, 2.15rem);
+      margin-bottom: 14px;
+      font-weight: 800;
+    }
+
+    .section h3 {
+      font-size: 1.2rem;
+      margin-top: 28px;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .lead-muted {
+      color: var(--muted);
+      font-size: 1.04rem;
+    }
+
+    .module-card {
+      height: 100%;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      border-radius: 12px;
+    }
+
+    .icon-box {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .callout {
+      margin: 18px 0;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: 12px;
+      background: var(--accent-soft);
+    }
+
+    .callout.tip {
+      border-left-color: #10b981;
+      background: var(--success-soft);
+    }
+
+    .callout.warning {
+      border-left-color: #f59e0b;
+      background: var(--warning-soft);
+    }
+
+    .code-shell {
+      position: relative;
+      margin: 16px 0;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid #263244;
+      background: var(--code);
+    }
+
+    .code-title {
+      color: #cbd5e1;
+      background: rgba(255, 255, 255, .04);
+      border-bottom: 1px solid rgba(255, 255, 255, .08);
+      padding: 8px 12px;
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      color: #e5e7eb;
+      overflow: auto;
+      font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+      font-size: 13.5px;
+      line-height: 1.55;
+    }
+
+    .copy-btn {
+      border: 1px solid rgba(255, 255, 255, .18);
+      color: #e5e7eb;
+      background: rgba(255, 255, 255, .06);
+      border-radius: 8px;
+      padding: 4px 9px;
+      font-size: 12px;
+    }
+
+    .table {
+      --bs-table-bg: transparent;
+      border-color: var(--border);
+    }
+
+    .table thead th {
+      background: rgba(100, 116, 139, .08);
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    .badge-soft {
+      color: var(--accent);
+      background: var(--accent-soft);
+      border: 1px solid var(--accent-border);
+      font-weight: 600;
+    }
+
+    .step-list {
+      counter-reset: step;
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .step-list li {
+      counter-increment: step;
+      position: relative;
+      padding-left: 46px;
+      margin-bottom: 16px;
+    }
+
+    .step-list li::before {
+      content: counter(step);
+      position: absolute;
+      left: 0;
+      top: 1px;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 700;
+      font-size: 13px;
+      background: var(--accent);
+    }
+
+    .path {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      align-items: center;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 13px;
+      color: var(--text);
+      background: rgba(100, 116, 139, .08);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 4px 8px;
+    }
+
+    .btn-primary {
+      --bs-btn-bg: var(--accent);
+      --bs-btn-border-color: var(--accent);
+      --bs-btn-hover-bg: var(--accent-2);
+      --bs-btn-hover-border-color: var(--accent-2);
+      --bs-btn-active-bg: var(--accent-2);
+      --bs-btn-active-border-color: var(--accent-2);
+      --bs-btn-color: #fff;
+      box-shadow: 0 10px 22px rgba(239, 78, 42, .18);
+    }
+
+    .btn-outline-secondary {
+      --bs-btn-color: var(--text);
+      --bs-btn-border-color: var(--border);
+      --bs-btn-hover-bg: var(--accent-soft);
+      --bs-btn-hover-border-color: var(--accent-border);
+      --bs-btn-hover-color: var(--accent);
+      --bs-btn-active-bg: var(--accent-soft);
+      --bs-btn-active-border-color: var(--accent-border);
+      --bs-btn-active-color: var(--accent);
+    }
+
+    .accordion-faq .accordion-item {
+      background: transparent;
+      color: var(--text);
+      border-color: var(--border);
+    }
+
+    .accordion-faq .accordion-button {
+      background: var(--surface);
+      color: var(--text);
+      font-weight: 700;
+      box-shadow: none;
+    }
+
+    .accordion-faq .accordion-button:not(.collapsed) {
+      color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .accordion-faq .muted {
+      color: var(--muted);
+    }
+
+    .mobile-menu {
+      display: none;
+    }
+
+    .search-empty {
+      display: none;
+      color: var(--muted);
+      padding: 12px;
+      font-size: 14px;
+    }
+
+    .offcanvas {
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    @media (max-width: 1199px) {
+      .layout {
+        grid-template-columns: var(--side-w) minmax(0, 1fr);
+      }
+
+      .right-toc {
+        display: none;
+      }
+    }
+
+    @media (max-width: 991px) {
+      .layout {
+        display: block;
+        padding: 18px 14px 48px;
+      }
+
+      .left-sidebar {
+        display: none;
+      }
+
+      .navbar-brand {
+        order: 1;
+        margin-right: 0 !important;
+      }
+
+      .mobile-menu {
+        display: inline-flex;
+        order: 2;
+        margin-left: auto;
+        margin-right: 0 !important;
+      }
+
+      .search-wrap {
+        width: 100%;
+        max-width: none;
+        order: 3;
+        margin-top: 12px;
+      }
+
+      .nav-actions {
+        order: 4;
+      }
+
+      .doc-nav .container-fluid {
+        flex-wrap: wrap;
+      }
+
+      .section,
+      .hero {
+        border-radius: 14px;
+      }
+    }
+
+    @media (max-width: 575px) {
+
+      .hero,
+      .section {
+        padding: 20px;
+      }
+
+      .nav-actions {
+        width: 100%;
+        margin-top: 12px;
+      }
+
+      .nav-actions .btn {
+        flex: 1 1 auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar navbar-expand-lg sticky-top doc-nav">
+    <div class="container-fluid px-3 px-lg-4">
+      <button class="btn btn-outline-secondary mobile-menu me-2" type="button" data-bs-toggle="offcanvas"
+        data-bs-target="#mobileSidebar" aria-label="Open documentation menu">
+        <i class="bi bi-list"></i>
+      </button>
+      <a class="navbar-brand d-flex align-items-center gap-2 fw-bold me-3" href="#introduction">
+        <img class="brand-mark"
+          src="https://www.fableadtechnolabs.com/static/media/250x150%20(1).b3f5a4db48c7770366ef.webp"
+          alt="Fablead Logo">
+      </a>
+      <div class="position-relative search-wrap mx-lg-auto">
+        <i class="bi bi-search search-icon"></i>
+        <input id="docSearch" class="form-control" type="search" placeholder="Search templates, campaigns, settings..."
+          aria-label="Search documentation">
+      </div>
+      <div class="nav-actions d-flex align-items-center gap-2 ms-lg-3">
+        <button id="themeToggle" class="btn btn-outline-secondary" type="button" aria-label="Toggle theme"><i
+            class="bi bi-moon-stars"></i></button>
+        <button id="shareBtn" class="btn btn-outline-secondary" type="button" aria-label="Share documentation"><i
+            class="bi bi-share"></i> Share</button>
+        <a class="btn btn-primary" href="#web-overview">Get Started</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="offcanvas offcanvas-start" tabindex="-1" id="mobileSidebar" aria-labelledby="mobileSidebarLabel">
+    <div class="offcanvas-header border-bottom">
+      <h5 class="offcanvas-title" id="mobileSidebarLabel">Documentation</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body" id="mobileSidebarBody"></div>
+  </div>
+
+  <div class="layout">
+    <aside class="left-sidebar" aria-label="Documentation sidebar">
+      <div class="panel" id="desktopSidebar">
+        <div class="small fw-bold text-uppercase text-secondary px-2 mb-2">Guides</div>
+        <a class="side-link" href="#introduction"><i class="bi bi-info-circle"></i> Introduction</a>
+        <button class="side-heading mt-2" data-bs-toggle="collapse" data-bs-target="#overviewNav"
+          aria-expanded="true">Overview <i class="bi bi-chevron-down"></i></button>
+        <div class="collapse show" id="overviewNav">
+          <a class="side-link" href="#web-overview">Platform Overview</a>
+          <a class="side-link" href="#web-pages-guide">Pages & Routes</a>
+          <a class="side-link" href="#web-workflow">Campaign Workflow</a>
+        </div>
+        <button class="side-heading mt-2" data-bs-toggle="collapse" data-bs-target="#featuresNav"
+          aria-expanded="true">Features Deep Dive <i class="bi bi-chevron-down"></i></button>
+        <div class="collapse show" id="featuresNav">
+          <a class="side-link" href="#dashboard-reports">Dashboard & Reports</a>
+          <a class="side-link" href="#contact-management">Contacts & Groups</a>
+          <a class="side-link" href="#template-management">WABA Templates</a>
+          <a class="side-link" href="#campaign-manager">Bulk Sender & Campaigns</a>
+          <a class="side-link" href="#live-chat">Live Chat Interface</a>
+
+          <a class="side-link" href="#automation-settings">Automation & Settings</a>
+        </div>
+        <button class="side-heading mt-2" data-bs-toggle="collapse" data-bs-target="#devNav"
+          aria-expanded="true">Developers <i class="bi bi-chevron-down"></i></button>
+        <div class="collapse show" id="devNav">
+          <a class="side-link" href="#web-api-modules">Redux Slices Reference</a>
+          <a class="side-link" href="#local-setup">Local Setup</a>
+          <a class="side-link" href="#troubleshooting">Common Issues</a>
+        </div>
+        <div class="search-empty" id="searchEmpty">No matching sections found.</div>
+      </div>
+    </aside>
+
+    <main id="mainContent">
+      <header class="hero doc-section" id="introduction">
+        <span class="badge badge-soft rounded-pill px-3 py-2 mb-3">WhatsApp Bulk Messaging Panel</span>
+        <h1 class="fw-bold mb-3">WhatsApp Bulk Messaging Platform.</h1>
+        <p class="lead-muted mb-4">Complete documentation for the WhatsApp Bulk Messaging system serving business
+          administrators and support teams. The platform manages contact audiences, automated WhatsApp campaigns,
+          official WABA template syncing, live customer chat, and subscription billing.</p>
+        <div class="d-flex flex-wrap gap-2">
+          <a class="btn btn-primary btn-lg" href="#web-overview"><i class="bi bi-whatsapp me-1"></i> View Platform
+            Overview</a>
+          <a class="btn btn-outline-secondary btn-lg" href="#web-api-modules"><i class="bi bi-code-slash me-1"></i> View
+            Modules</a>
+        </div>
+      </header>
+
+      <section class="section doc-section" id="web-overview">
+        <h2>Platform Overview</h2>
+        <p>The web platform is the primary interface for businesses utilizing the WhatsApp Cloud API. It provides a
+          comprehensive suite of tools to automate and track messaging at scale.</p>
+        <div class="row g-3 mt-1">
+          <div class="col-md-6 col-xl-4">
+            <div class="card module-card p-3">
+              <div class="icon-box mb-3"><i class="bi bi-graph-up-arrow"></i></div>
+              <h3 class="mt-0">Dashboard</h3>
+              <p>Real-time analytics for campaign deliveries, read receipts, and WABA connection health.</p>
+            </div>
+          </div>
+          <div class="col-md-6 col-xl-4">
+            <div class="card module-card p-3">
+              <div class="icon-box mb-3"><i class="bi bi-megaphone"></i></div>
+              <h3 class="mt-0">Campaigns</h3>
+              <p>Schedule and track bulk message blasts using approved WhatsApp templates.</p>
+            </div>
+          </div>
+          <div class="col-md-6 col-xl-4">
+            <div class="card module-card p-3">
+              <div class="icon-box mb-3"><i class="bi bi-people"></i></div>
+              <h3 class="mt-0">Contacts & Groups</h3>
+              <p>Import CSV datasets and segment customers into groups for targeted marketing.</p>
+            </div>
+          </div>
+          <div class="col-md-6 col-xl-4">
+            <div class="card module-card p-3">
+              <div class="icon-box mb-3"><i class="bi bi-chat-dots"></i></div>
+              <h3 class="mt-0">Live Chat Hub</h3>
+              <p>Manage incoming customer replies and provide support in a unified inbox.</p>
+            </div>
+          </div>
+          <div class="col-md-6 col-xl-4">
+            <div class="card module-card p-3">
+              <div class="icon-box mb-3"><i class="bi bi-file-earmark-text"></i></div>
+              <h3 class="mt-0">Templates</h3>
+              <p>Sync, create, and submit Marketing, Utility, and Auth templates to Meta.</p>
+            </div>
+          </div>
+          <div class="col-md-6 col-xl-4">
+            <div class="card module-card p-3">
+              <div class="icon-box mb-3"><i class="bi bi-wallet2"></i></div>
+              <h3 class="mt-0">Credits & Wallet</h3>
+              <p>Manage messaging quota, recharge balance, and view subscription plans.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section doc-section" id="web-pages-guide">
+        <h2>Pages & Routes</h2>
+        <p>The frontend uses React Router to protect core features behind the <code>SubscriptionGuard</code> component,
+          ensuring users have active credits before accessing features.</p>
+        <div class="table-responsive">
+          <table class="table table-bordered align-middle">
+            <thead>
+              <tr>
+                <th>Page Type</th>
+                <th>Routes</th>
+                <th>Purpose</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Auth Pages</td>
+                <td><span class="path">/login</span>, <span class="path">/reset-password</span></td>
+                <td>User authentication and account recovery via JWT.</td>
+              </tr>
+              <tr>
+                <td>Core Views</td>
+                <td><span class="path">/dashboard</span>, <span class="path">/reports</span></td>
+                <td>Main overview of recent campaigns and deep-dive analytical tables.</td>
+              </tr>
+              <tr>
+                <td>Audience</td>
+                <td><span class="path">/contacts</span>, <span class="path">/groups</span></td>
+                <td>Manage audiences, edit contact details, and bulk import CSVs.</td>
+              </tr>
+              <tr>
+                <td>WABA assets</td>
+                <td><span class="path">/templates</span>, <span class="path">/templates/new</span></td>
+                <td>Create new WhatsApp templates and view Meta approval status.</td>
+              </tr>
+              <tr>
+                <td>Broadcasts</td>
+                <td><span class="path">/campaigns</span>, <span class="path">/bulk-send</span></td>
+                <td>Launch new broadcasts and track the delivery history.</td>
+              </tr>
+              <tr>
+                <td>Interaction</td>
+                <td><span class="path">/chat</span>, <span class="path">/conversations/:id</span></td>
+                <td>Real-time messaging with customers using WebSocket connections.</td>
+              </tr>
+              <tr>
+                <td>Finance</td>
+                <td><span class="path">/credits</span>, <span class="path">/recharge</span>, <span
+                    class="path">/plan-history</span></td>
+                <td>Manage account balance, view transactions, and renew SaaS plans.</td>
+              </tr>
+              <tr>
+                <td>System</td>
+                <td><span class="path">/settings</span>, <span class="path">/automation</span></td>
+                <td>Configure global app preferences, view API connection status, and auto-replies.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section doc-section" id="web-workflow">
+        <h2>Campaign Workflow</h2>
+        <ol class="step-list">
+          <li><strong>Template Sync.</strong> Navigate to Templates and sync your approved WABA templates from Meta.
+          </li>
+          <li><strong>Import Audience.</strong> Go to Contacts and use the CSV Importer to upload your customer list.
+            Format columns properly for dynamic variables.</li>
+          <li><strong>Create Segment.</strong> Group your contacts (e.g., "Diwali Offer Audience") in the Groups module.
+          </li>
+          <li><strong>Launch Campaign.</strong> Open the Bulk Sender (<code>/bulk-send</code>), select your target
+            Group, pick an approved Template, and map any dynamic variables.</li>
+          <li><strong>Monitor Delivery.</strong> Navigate to Reports to view real-time statistics (Sent, Delivered,
+            Read, Failed) processed by backend webhooks.</li>
+        </ol>
+      </section>
+
+      <section class="section doc-section" id="dashboard-reports">
+        <h2>Dashboard & Reports Deep Dive</h2>
+        <p>The analytics engine gives business owners full visibility into their WhatsApp ROI.</p>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="card module-card p-3">
+              <h3 class="mt-0">Dashboard (<code>Dashboard.jsx</code>)</h3>
+              <p>The dashboard fetches aggregated data via the <code>dashboardSlice</code>. It displays a summary of
+                total credits spent, messages delivered, and an interactive chart showing sending trends over the last
+                30 days. It also highlights the current WhatsApp Business Account (WABA) health rating
+                (Green/Yellow/Red).</p>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card module-card p-3">
+              <h3 class="mt-0">Reports (<code>Reports.tsx</code>)</h3>
+              <p>Provides granular row-by-row tracking. Users can filter by date range or campaign to see exactly which
+                phone numbers received the message, which failed (e.g., invalid number), and who read it. You can export
+                these reports back to CSV.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section doc-section" id="contact-management">
+        <h2>Contacts & Groups Deep Dive</h2>
+        <p>Managing large lists effectively is critical for bulk messaging.</p>
+        <ul>
+          <li><strong>Contacts Directory (<code>Contacts.jsx</code>):</strong> A paginated data table showing all
+            numbers. Supports inline editing and deletion.</li>
+          <li><strong>CSV Import Modal:</strong> Automatically maps standard CSV headers (Name, Phone, Email, Custom 1,
+            Custom 2) to the database. Bad numbers are auto-filtered out.</li>
+          <li><strong>Group Segmentation (<code>Groups.tsx</code>):</strong> Create specific lists like "VIP Customers"
+            or "Cart Abandoners". In <code>GroupDetails.tsx</code>, you can add or remove individuals from the group
+            dynamically before a blast.</li>
+        </ul>
+      </section>
+
+      <section class="section doc-section" id="template-management">
+        <h2>WABA Templates Deep Dive</h2>
+        <p>Meta enforces strict rules on outbound messaging. You must use pre-approved templates.</p>
+        <div class="table-responsive">
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>Component</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Template Syncing</strong></td>
+                <td><code>Templates.jsx</code></td>
+                <td>Pulls the latest approved templates from Meta via the backend API. Displays category (Marketing,
+                  Utility) and language.</td>
+              </tr>
+              <tr>
+                <td><strong>Creation Form</strong></td>
+                <td><code>CreateTemplate.tsx</code></td>
+                <td>A wizard to build templates. Supports header types (Text, Image, Document), body text with variables
+                  (<code>{{1}}</code>), footer text, and interactive buttons (Call to Action or Quick Reply).</td>
+              </tr>
+              <tr>
+                <td><strong>Template Preview</strong></td>
+                <td><code>TemplateView.tsx</code></td>
+                <td>Renders a live mockup of how the template will look on a customer's phone before you send it.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section doc-section" id="campaign-manager">
+        <h2>Bulk Sender & Campaigns Deep Dive</h2>
+        <p>The <code>/bulk-send</code> route is the core engine of the platform, designed to prevent mistakes during
+          large broadcasts.</p>
+        <ol class="step-list">
+          <li><strong>Target Selection:</strong> Choose a pre-defined Group. The system calculates the estimated credit
+            cost based on audience size.</li>
+          <li><strong>Template Picker:</strong> Select an approved template. Unapproved or rejected templates are
+            disabled.</li>
+          <li><strong>Variable Mapping (Crucial):</strong> Map dynamic placeholders (e.g., <code>{{1}}</code> = Name,
+            <code>{{2}}</code> = Discount Code). The UI generates a preview based on the first contact in the group.
+          </li>
+          <li><strong>Media Upload:</strong> If the template has a media header, upload the specific Image or PDF via
+            the <code>MediaModule.jsx</code> integration.</li>
+          <li><strong>Scheduling:</strong> Dispatch the campaign immediately, or pick a future date and time. Handled by
+            Laravel queues on the backend.</li>
+        </ol>
+      </section>
+
+      <section class="section doc-section" id="live-chat">
+        <h2>Live Chat Interface Deep Dive</h2>
+        <p>Provides customer support directly over WhatsApp via <code>Chat.jsx</code>.</p>
+        <div class="callout warning"><strong>24-Hour Rule:</strong> You can only send free-form text messages to
+          customers who have messaged you within the last 24 hours. Otherwise, the UI restricts you to sending approved
+          Templates.</div>
+        <ul>
+          <li><strong>Inbox View:</strong> Lists all active conversations on the left pane, sorted by most recent.</li>
+          <li><strong>Thread View (<code>ConversationDetails.jsx</code>):</strong> Real-time message history. Supports
+            rendering incoming images, audio notes, and location pins.</li>
+          <li><strong>Message Inspector (<code>MessageDetails.jsx</code>):</strong> Click on any sent message to see
+            exact timestamps for Sent, Delivered, and Read statuses.</li>
+        </ul>
+      </section>
+
+
+      <section class="section doc-section" id="automation-settings">
+        <h2>Automation & Settings Deep Dive</h2>
+        <p>Configure the system behavior and WABA connections.</p>
+        <ul>
+          <li><strong>Global Settings (<code>Settings.tsx</code>):</strong> Configure timezones, default notification
+            preferences, and team member roles.</li>
+          <li><strong>WABA Status (<code>WABAStatus.tsx</code>):</strong> Monitor webhook connection, phone number
+            quality, and messaging limits (e.g., Tier 1 = 1k msgs/day, Tier 2 = 10k msgs/day).</li>
+          <li><strong>Automation (<code>Automation.tsx</code>):</strong> Setup auto-replies (e.g., "Out of Office"
+            messages) or keyword-based routing for incoming messages.</li>
+        </ul>
+      </section>
+
+      <section class="section doc-section" id="web-api-modules">
+        <h2>Redux Slices Reference</h2>
+        <p>The application uses Redux Toolkit (stored in <code>src/features</code>) to manage API calls and state
+          centrally.</p>
+        <div class="table-responsive">
+          <table class="table table-bordered align-middle">
+            <thead>
+              <tr>
+                <th>Slice Directory</th>
+                <th>Primary Actions & Purpose</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong><code>features/auth/</code></strong></td>
+                <td><code>login</code>, <code>logout</code>, <code>getProfile</code>. Stores JWT token securely and
+                  handles session state.</td>
+              </tr>
+              <tr>
+                <td><strong><code>features/contacts/</code></strong></td>
+                <td><code>fetchContacts</code>, <code>importCSV</code>, <code>deleteContact</code>. Manages pagination
+                  and search filters for the audience directory.</td>
+              </tr>
+              <tr>
+                <td><strong><code>features/groups/</code></strong></td>
+                <td><code>fetchGroups</code>, <code>addContactsToGroup</code>. Handles segmentation logic for
+                  broadcasts.</td>
+              </tr>
+              <tr>
+                <td><strong><code>features/templates/</code></strong></td>
+                <td><code>syncTemplates</code>, <code>createTemplate</code>. Interacts with the backend to proxy
+                  requests to Meta's WhatsApp API.</td>
+              </tr>
+              <tr>
+                <td><strong><code>features/bulkSend/</code></strong></td>
+                <td><code>initiateBulkSend</code>, <code>scheduleCampaign</code>. Constructs the complex JSON payload
+                  mapping variables to contacts for the queuing system.</td>
+              </tr>
+              <tr>
+                <td><strong><code>features/conversations/</code></strong></td>
+                <td><code>fetchChats</code>, <code>sendMessage</code>. Uses polling or WebSockets to maintain real-time
+                  chat state.</td>
+              </tr>
+              <tr>
+                <td><strong><code>features/dashboard/</code></strong></td>
+                <td><code>fetchAnalytics</code>. Retrieves aggregated metrics for Chart.js rendering.</td>
+              </tr>
+              <tr>
+                <td><strong><code>features/credits/</code></strong></td>
+                <td><code>fetchWallet</code>, <code>initiatePayment</code>. Manages financial transactions and gating.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section doc-section" id="local-setup">
+        <h2>Local Setup</h2>
+        <p>The frontend uses Vite, React, and TailwindCSS. Make sure you have Node 18+ installed.</p>
+        <div class="code-shell">
+          <div class="code-title"><span>Install Web Panel</span><button class="copy-btn" type="button">Copy</button>
+          </div>
+          <pre><code>cd whatsAppbulk-messaging-demo
+npm install
+npm run dev</code></pre>
+        </div>
+        <div class="callout tip"><strong>Environment Variables:</strong> Ensure you copy <code>.env.example</code> to
+          <code>.env</code> and set <code>VITE_API_BASE_URL</code> to point to your local Laravel backend API (e.g.,
+          <code>http://localhost:8000/api</code>).</div>
+      </section>
+
+      <section class="section doc-section" id="troubleshooting">
+        <h2>Common Issues</h2>
+        <div class="table-responsive">
+          <table class="table table-bordered align-middle">
+            <thead>
+              <tr>
+                <th>Issue</th>
+                <th>Likely Cause</th>
+                <th>Fix</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Stuck on "Choose a plan to continue"</td>
+                <td>No active subscription plan.</td>
+                <td>The <code>SubscriptionGuard</code> component blocks access to core routes. Complete a plan purchase
+                  or assign one via the backend database.</td>
+              </tr>
+              <tr>
+                <td>Messages stuck in "Sent" status</td>
+                <td>Webhooks not configured.</td>
+                <td>Ensure the Laravel backend webhook URL is registered in the Meta Developer Dashboard and the server
+                  is publicly accessible (use ngrok locally).</td>
+              </tr>
+              <tr>
+                <td>Cannot send Free-form Chat</td>
+                <td>Outside 24-hour window.</td>
+                <td>WhatsApp policy restricts free-form replies if the user hasn't messaged you in 24 hours. You must
+                  send an approved template instead.</td>
+              </tr>
+              <tr>
+                <td>Template variables not rendering</td>
+                <td>Mismatched mapping in <code>bulkSendSlice</code>.</td>
+                <td>Ensure the number of variables mapped in the UI exactly matches the placeholders defined in the Meta
+                  template.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+
+    <aside class="right-toc" aria-label="On this page">
+      <div class="panel">
+        <div class="small fw-bold text-uppercase text-secondary px-2 mb-2">On this page</div>
+        <nav id="tocLinks"></nav>
+      </div>
+    </aside>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const html = document.documentElement;
+    const themeToggle = document.getElementById('themeToggle');
+    const storedTheme = localStorage.getItem('whatsapp-doc-theme');
+    if (storedTheme) {
+      html.setAttribute('data-bs-theme', storedTheme);
+      themeToggle.innerHTML = storedTheme === 'dark' ? '<i class="bi bi-sun"></i>' : '<i class="bi bi-moon-stars"></i>';
+    }
+    themeToggle.addEventListener('click', () => {
+      const nextTheme = html.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-bs-theme', nextTheme);
+      localStorage.setItem('whatsapp-doc-theme', nextTheme);
+      themeToggle.innerHTML = nextTheme === 'dark' ? '<i class="bi bi-sun"></i>' : '<i class="bi bi-moon-stars"></i>';
+    });
+
+    document.querySelectorAll('.copy-btn').forEach((button) => {
+      button.addEventListener('click', async () => {
+        const code = button.closest('.code-shell').querySelector('code').innerText;
+        await navigator.clipboard.writeText(code);
+        const old = button.textContent;
+        button.textContent = 'Copied';
+        setTimeout(() => button.textContent = old, 1400);
+      });
+    });
+
+    document.getElementById('mobileSidebarBody').innerHTML = document.getElementById('desktopSidebar').innerHTML;
+    document.querySelectorAll('#mobileSidebarBody a').forEach((link) => {
+      link.addEventListener('click', () => {
+        const instance = bootstrap.Offcanvas.getInstance(document.getElementById('mobileSidebar'));
+        if (instance) instance.hide();
+      });
+    });
+
+    const sections = Array.from(document.querySelectorAll('.doc-section'));
+    const tocLinks = document.getElementById('tocLinks');
+    sections.forEach((section) => {
+      const heading = section.querySelector('h1, h2');
+      if (!heading) return;
+      const link = document.createElement('a');
+      link.className = 'toc-link';
+      link.href = '#' + section.id;
+      link.textContent = heading.textContent;
+      tocLinks.appendChild(link);
+    });
+
+    const navLinks = Array.from(document.querySelectorAll('.side-link, .toc-link'));
+    const observer = new IntersectionObserver((entries) => {
+      const visible = entries.filter(entry => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+      if (!visible) return;
+      navLinks.forEach(link => link.classList.toggle('active', link.getAttribute('href') === '#' + visible.target.id));
+    }, { rootMargin: '-20% 0px -68% 0px', threshold: [0.1, 0.25, 0.5] });
+    sections.forEach(section => observer.observe(section));
+
+    const searchInput = document.getElementById('docSearch');
+    const searchEmpty = document.getElementById('searchEmpty');
+    const sideLinks = Array.from(document.querySelectorAll('#desktopSidebar .side-link'));
+    searchInput.addEventListener('input', () => {
+      const query = searchInput.value.trim().toLowerCase();
+      let matches = 0;
+      sections.forEach(section => {
+        const isMatch = !query || section.innerText.toLowerCase().includes(query);
+        section.style.display = isMatch ? '' : 'none';
+      });
+      sideLinks.forEach(link => {
+        const target = document.querySelector(link.getAttribute('href'));
+        const isMatch = target && target.style.display !== 'none';
+        link.style.display = isMatch ? '' : 'none';
+        if (isMatch) matches++;
+      });
+      searchEmpty.style.display = query && matches === 0 ? 'block' : 'none';
+    });
+
+    const shareBtn = document.getElementById('shareBtn');
+    if (shareBtn) {
+      shareBtn.addEventListener('click', async () => {
+        const shareData = {
+          title: document.title,
+          text: 'Check out the WhatsApp Bulk Messaging Documentation!',
+          url: window.location.href
+        };
+        try {
+          if (navigator.share && window.isSecureContext) {
+            await navigator.share(shareData);
+          } else {
+            await navigator.clipboard.writeText(window.location.href);
+            const oldHtml = shareBtn.innerHTML;
+            shareBtn.innerHTML = '<i class="bi bi-check2"></i> Copied';
+            setTimeout(() => shareBtn.innerHTML = oldHtml, 2000);
+          }
+        } catch (err) {
+          console.error('Error sharing:', err);
+        }
+      });
+    }
+  </script>
+</body>
+
+</html>

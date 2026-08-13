@@ -37,6 +37,7 @@ import { BulkMessageSender } from "@/components/campaigns/BulkMessageSender";
 import { BulkMessageSenderedit } from "@/components/campaigns/BulkMessageSenderedit";
 import { Notifications } from "@/pages/Notifications";
 import { Chat } from "@/pages/Chat";
+import { ConversationDetails } from "@/pages/ConversationDetails";
 import { Settings } from "@/pages/Settings";
 import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
@@ -49,8 +50,18 @@ import Media from "./pages/Media";
 import MediaView from "./pages/MediaView";
 const queryClient = new QueryClient();
 import SubscriptionGuard from "./pages/SubscriptionGuard";
+import { Automation } from "./pages/Automation";
+import { WABAStatus } from "./pages/WABAStatus";
+import MessageDetails from "./pages/MessageDetails";
+import { MessageInbox } from "./pages/MessageInbox";
 
 const AppRoutes = () => {
+  // const { error } = useError();
+
+  // if (error) {
+  //   return <ErrorPage message={error.message} />;
+  // }
+
   return (
     <ErrorBoundary FallbackComponent={ErrorFallback}>
       <Routes>
@@ -92,7 +103,10 @@ const AppRoutes = () => {
             />
             <Route path="templates/:id" element={<TemplateView />} />
             <Route path="campaigns" element={<Campaigns />} />
+            <Route path="messageDetails" element={<MessageDetails />} />
             <Route path="campaigns/new" element={<NewCampaignPage />} />
+            <Route path="waba-status" element={<WABAStatus />} />
+            <Route path="automation" element={<Automation />} />
             <Route
               path="campaigns-details/:bulkId"
               element={<CampaignDetailsPage />}
@@ -103,11 +117,13 @@ const AppRoutes = () => {
               element={<BulkMessageSenderedit />}
             />
             <Route path="notifications" element={<Notifications />} />
-            {/* <Route path="chat" element={<Chat />} /> */}
+            <Route path="chat" element={<Chat />} />
+            <Route path="conversations/:id" element={<ConversationDetails />} />
             <Route path="settings" element={<Settings />} />
             <Route path="profile" element={<Profile />} />
             <Route path="media" element={<Media />} />
             <Route path="media/:id" element={<MediaView />} />
+            <Route path="message-inbox" element={<MessageInbox />} />
           </Route>
         </Route>
 

@@ -178,7 +178,7 @@ export const Settings: React.FC = () => {
   };
 
   return (
-    <div className="container  mx-auto px-4 py-0 space-y-8">
+    <div className="container mx-auto px-0 sm:px-6 lg:px-4 py-0 space-y-8">
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold">Settings</h1>
         <p className="text-muted-foreground mt-1">
@@ -212,6 +212,7 @@ export const Settings: React.FC = () => {
                 <Label htmlFor="fb_app_id">Facebook App ID *</Label>
                 <Input
                   id="fb_app_id"
+                  type="password"
                   value={apiConfig.fb_app_id}
                   onChange={(e) =>
                     setApiConfig((p) => ({ ...p, fb_app_id: e.target.value }))
@@ -224,6 +225,7 @@ export const Settings: React.FC = () => {
                 <Label htmlFor="fb_app_secret">Facebook App Secret *</Label>
                 <Input
                   id="fb_app_secret"
+                  type="password"
                   value={apiConfig.fb_app_secret}
                   onChange={(e) =>
                     setApiConfig((p) => ({
@@ -315,62 +317,6 @@ export const Settings: React.FC = () => {
           </form>
         </CardContent>
       </Card>
-
-      {/* <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TestTube className="w-5 h-5" /> Connection Testing
-          </CardTitle>
-          <CardDescription>
-            Test your WhatsApp API connection and send sample messages
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex gap-3">
-            <Button
-              onClick={testConnection}
-              disabled={isTestingConnection}
-              variant="outline"
-            >
-              {isTestingConnection ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                  Testing...
-                </>
-              ) : (
-                <>
-                  <Shield className="w-4 h-4 mr-2" />
-                  Test Connection
-                </>
-              )}
-            </Button>
-            <Button
-              onClick={handleSendTestMessage}
-              disabled={connectionStatus !== "connected"}
-              variant="outline"
-            >
-              <Smartphone className="w-4 h-4 mr-2" /> Send Test Message
-            </Button>
-          </div>
-
-          {connectionStatus === "connected" && (
-            <Alert>
-              <CheckCircle className="h-4 w-4" />
-              <AlertDescription>
-                WhatsApp API is properly configured and ready to use.
-              </AlertDescription>
-            </Alert>
-          )}
-          {connectionStatus === "error" && (
-            <Alert variant="destructive">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>
-                Connection failed. Check credentials and try again.
-              </AlertDescription>
-            </Alert>
-          )}
-        </CardContent>
-      </Card> */}
     </div>
   );
 };

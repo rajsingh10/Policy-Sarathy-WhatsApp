@@ -108,7 +108,7 @@ export const TemplateView: React.FC = () => {
   if (loading) return <BaseLoading message="Loading..." />;
   if (error)
     return (
-      <div className="container max-w-6xl mx-auto p-6">Error: {error}</div>
+      <div className="container max-w-6xl mx-auto px-0 sm:p-6">Error: {error}</div>
     );
   if (!currentTemplate)
     return (
@@ -201,7 +201,7 @@ export const TemplateView: React.FC = () => {
   };
 
   return (
-    <div className="container max-w-6xl mx-auto px-4">
+    <div className="container max-w-6xl mx-auto px-0 sm:px-6 lg:px-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center space-x-4">
@@ -252,7 +252,7 @@ export const TemplateView: React.FC = () => {
                   Template Body
                 </Label>
                 <div className="p-4 bg-muted/50 rounded-lg border">
-                  <pre className="whitespace-pre-wrap font-mono text-sm text-foreground overflow-hidden">
+                  <pre className="whitespace-pre-wrap font-mono text-sm text-foreground">
                     {template.body}
                   </pre>
                 </div>

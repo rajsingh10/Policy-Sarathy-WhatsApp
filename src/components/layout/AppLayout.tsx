@@ -30,20 +30,19 @@ export const AppLayout: React.FC = () => {
       <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
 
       {/* Main Content */}
-      <div className="flex flex-col min-h-screen w-full">
+      <div className="flex flex-col min-h-screen w-full lg:pl-64">
         {/* Header → hide if sidebar open */}
         {!mobileOpen && (
           <div
-            className={`z-10 sticky top-0 transition-transform duration-300 ${
-              showHeader ? "translate-y-0" : "-translate-y-full"
-            } lg:pl-64`}
+            className={`z-10 sticky top-0 transition-transform duration-300 ${showHeader ? "translate-y-0" : "-translate-y-full"
+              }`}
           >
             <Header onMenuClick={() => setMobileOpen(true)} />
           </div>
         )}
 
         {/* Page Content */}
-        <main className="flex-1 overflow-auto p-4 lg:pl-64">
+        <main className="flex-1 overflow-auto py-2 sm:py-2 lg:py-4 sm:px-2 px-2">
           <Outlet />
         </main>
       </div>

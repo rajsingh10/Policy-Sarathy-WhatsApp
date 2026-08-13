@@ -7,12 +7,14 @@ import API, { apiService } from "../../config/api";
 // Fetch all groups
 export const fetchGroups = createAsyncThunk(
   "groups/fetchAll",
-  async (token, thunkAPI) => {
+  async ({ token, page = 1, limit = 15, search = "" } = {}, thunkAPI) => {
     try {
       const res = await apiService.get(API.ENDPOINTS.GROUPS, {
         headers: { Authorization: `Bearer ${token}` },
+        params: { page, limit, search }
       });
-      return res.data.data;
+      return res.data;
+
     } catch (err) {
       return thunkAPI.rejectWithValue(err.response?.data || err.message);
     }
@@ -126,7 +128,7 @@ export const addContactToGroup = createAsyncThunk(
 export const removeSingleGroup = createAsyncThunk(
   "groups/removeSingleGroup",
   async ({ token, id }, thunkAPI) => {
-    // console.log(token)
+    console.log(token)
     try {
       const res = await apiService.delete(
         `${API.ENDPOINTS.REMOVE_SINGLE_CONTACT}/${id}`,
@@ -174,6 +176,14 @@ const groupSlice = createSlice({
   name: "groups",
   initialState: {
     items: [],
+    pagination: {
+      current_page: 1,
+      last_page: 1,
+      per_page: 15,
+      total: 0,
+      from: 0,
+      to: 0
+    },
     selectedGroup: null,
     addtocontacts: null,
     loading: false,
@@ -187,7 +197,16 @@ const groupSlice = createSlice({
       })
       .addCase(fetchGroups.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload;
+        // Check if response has pagination wrapper
+        if (action.payload && action.payload.data) {
+          state.items = action.payload.data;
+          if (action.payload.pagination) {
+            state.pagination = action.payload.pagination;
+          }
+        } else {
+          // Fallback
+          state.items = Array.isArray(action.payload) ? action.payload : [];
+        }
       })
       .addCase(fetchGroups.rejected, (state, action) => {
         state.loading = false;

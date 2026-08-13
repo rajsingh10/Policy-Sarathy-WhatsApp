@@ -1,3 +1,125 @@
+// import React, { useState, useRef } from "react";
+// import {
+//   Dialog,
+//   DialogContent,
+//   DialogHeader,
+//   DialogTitle,
+// } from "@/components/ui/dialog";
+// import { Button } from "@/components/ui/button";
+// import { Input } from "@/components/ui/input";
+// import { useToast } from "@/hooks/use-toast";
+
+// interface UploadModalProps {
+//   open: boolean;
+//   onOpenChange: (open: boolean) => void;
+//   onUploadComplete?: (file: File) => void;
+// }
+
+// const UploadModal: React.FC<UploadModalProps> = ({
+//   open,
+//   onOpenChange,
+//   onUploadComplete,
+// }) => {
+//   const [file, setFile] = useState<File | null>(null);
+//   const [preview, setPreview] = useState<string | null>(null);
+//   const fileInputRef = useRef<HTMLInputElement>(null);
+//   const { toast } = useToast();
+
+//   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+//   const validateFile = (file: File): string | null => {
+//     if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
+//       return "Only image and video files are allowed";
+//     }
+//     return null;
+//   };
+
+//   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+//     const selectedFile = e.target.files?.[0];
+//     if (!selectedFile) return;
+
+//     const error = validateFile(selectedFile);
+//     if (error) {
+//       toast({
+//         title: "Invalid file",
+//         description: error,
+//         variant: "destructive",
+//       });
+//       setFile(null);
+//       setPreview(null);
+//       return;
+//     }
+
+//     setFile(selectedFile);
+//     setPreview(URL.createObjectURL(selectedFile));
+//   };
+
+//   const handleSubmit = (e: React.FormEvent) => {
+//     e.preventDefault();
+//     if (file) {
+//       onUploadComplete?.(file);
+//     }
+//   };
+
+//   const handleClose = () => {
+//     setFile(null);
+//     setPreview(null);
+//     onOpenChange(false);
+//   };
+
+//   return (
+//     <Dialog open={open} onOpenChange={handleClose}>
+//       <DialogContent>
+//         <DialogHeader>
+//           <DialogTitle>Upload Image</DialogTitle>
+//         </DialogHeader>
+
+//         <form onSubmit={handleSubmit} className="space-y-4">
+//           <Input
+//             ref={fileInputRef}
+//             type="file"
+//             accept="image/*,video/*"
+//             onChange={handleFileChange}
+//           />
+
+//           {/* ✅ Image Preview */}
+//           {preview && (
+//             <div className="mt-2">
+//               {file?.type.startsWith("image/") ? (
+//                 <img
+//                   src={preview}
+//                   alt="Preview"
+//                   className="h-32 w-32 object-cover rounded border"
+//                 />
+//               ) : (
+//                 <video
+//                   src={preview}
+//                   controls
+//                   className="h-32 w-32 object-cover rounded border"
+//                 />
+//               )}
+//               <p className="text-sm text-muted-foreground mt-1">
+//                 {file?.name} ({(file!.size / 1024).toFixed(1)} KB)
+//               </p>
+//             </div>
+//           )}
+
+//           <div className="flex justify-end gap-2">
+//             <Button type="button" variant="outline" onClick={handleClose}>
+//               Cancel
+//             </Button>
+//             <Button type="submit" disabled={!file}>
+//               Upload
+//             </Button>
+//           </div>
+//         </form>
+//       </DialogContent>
+//     </Dialog>
+//   );
+// };
+
+// export default UploadModal;
+
 import React, { useState, useRef } from "react";
 import {
   Dialog,

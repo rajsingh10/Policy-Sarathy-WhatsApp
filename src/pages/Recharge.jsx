@@ -161,7 +161,7 @@ const Recharge = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 space-y-6">
+    <div className="container mx-auto px-0 sm:px-6 lg:px-4 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>

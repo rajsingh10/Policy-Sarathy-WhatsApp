@@ -248,7 +248,7 @@ export const Credits: React.FC = () => {
     return <BaseLoading message="Loading..." />;
 
   return (
-    <div className="container max-w-7xl mx-auto px-4">
+    <div className="container max-w-7xl mx-auto px-0 sm:px-6 lg:px-4">
       {/* Header */}
       <div className="flex flex-col justify-between sm:flex-row lg:justify-between sm:items-center gap-4 mb-8">
         <div>

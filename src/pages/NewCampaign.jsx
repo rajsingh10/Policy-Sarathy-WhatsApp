@@ -64,7 +64,7 @@ export const NewCampaignPage = () => {
   };
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="container mx-auto px-0 sm:px-6 lg:px-4 py-8">
       <CampaignWizard
         templates={mockTemplates}
         contacts={mockContacts}

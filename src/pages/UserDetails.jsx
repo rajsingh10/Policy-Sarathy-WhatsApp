@@ -26,6 +26,7 @@ const UserDetails = () => {
   const dispatch = useDispatch();
   const { toast } = useToast();
   const { singleData: user, loading } = useSelector((state) => state.users);
+  console.log("object", user);
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (id) dispatch(fetchSingleUser({ userId: id, token }));
@@ -165,13 +166,13 @@ const UserDetails = () => {
                   <p className="text-sm font-medium mb-1">Messages Used</p>
                   <Progress
                     value={getUsagePercentage(
-                      activePackage?.usedMsgCount || 0,
+                      activePackage?.usage?.yearlyUsedMessages ?? activePackage?.usedMsgCount ?? 0,
                       activePackage?.msgCount
                     )}
                     className="h-3 rounded-lg"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    {activePackage?.usedMsgCount || 0} of{" "}
+                    {activePackage?.usage?.yearlyUsedMessages ?? activePackage?.usedMsgCount ?? 0} of{" "}
                     {activePackage?.msgCount} messages
                   </p>
                 </div>
@@ -179,13 +180,13 @@ const UserDetails = () => {
                   <p className="text-sm font-medium mb-1">Templates Used</p>
                   <Progress
                     value={getUsagePercentage(
-                      activePackage?.usedTemplateCount || 0,
+                      activePackage?.usage?.monthlyUsedTemplates ?? activePackage?.usedTemplateCount ?? 0,
                       activePackage?.templateCount
                     )}
                     className="h-3 rounded-lg"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    {activePackage?.usedTemplateCount || 0} of{" "}
+                    {activePackage?.usage?.monthlyUsedTemplates ?? activePackage?.usedTemplateCount ?? 0} of{" "}
                     {activePackage?.templateCount} templates
                   </p>
                 </div>

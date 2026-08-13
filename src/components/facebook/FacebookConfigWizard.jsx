@@ -26,7 +26,7 @@ export default function FacebookConfigWizard({ onComplete }) {
   };
 
   const handleFacebookSuccess = (response) => {
-    // console.log("FB Response:", response);
+    console.log("FB Response:", response);
     setForm((prev) => ({
       ...prev,
       access_token: response.accessToken || "",

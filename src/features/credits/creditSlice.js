@@ -8,12 +8,12 @@ export const fetchCreditBalance = createAsyncThunk(
   "credit/fetchBalance",
   async ({ token, userId }, thunkAPI) => {
     try {
-        const res = await apiService.get(`${API.ENDPOINTS.GET_CREDITS}`, {
-            headers: { Authorization: `Bearer ${token}` },
-            params: { userId },
-          });
-          
-      return res.data; 
+      const res = await apiService.get(`${API.ENDPOINTS.GET_CREDITS}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { userId },
+      });
+
+      return res.data;
     } catch (err) {
       return thunkAPI.rejectWithValue(err.response?.data || err.message);
     }
@@ -35,47 +35,47 @@ export const addCreditBalance = createAsyncThunk(
   }
 );
 export const creditVerify = createAsyncThunk(
-    "credit/creditVerify",
-    async ({ token, creditData }, thunkAPI) => {
-      try {
-        const res = await apiService.post(API.ENDPOINTS.VERIFY_CREDITS, creditData, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        return res.data; // backend verification result
-      } catch (err) {
-        return thunkAPI.rejectWithValue(err.response?.data || err.message);
-      }
+  "credit/creditVerify",
+  async ({ token, creditData }, thunkAPI) => {
+    try {
+      const res = await apiService.post(API.ENDPOINTS.VERIFY_CREDITS, creditData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return res.data; // backend verification result
+    } catch (err) {
+      return thunkAPI.rejectWithValue(err.response?.data || err.message);
     }
-  );
-  export const getBalanceHistory = createAsyncThunk(
-    "credit/getBalanceHistory",
-    async ({ token, userId }, thunkAPI) => {
-      try {
-        const res = await apiService.get(API.ENDPOINTS.HISTORY_CREDITS, {
-          headers: { Authorization: `Bearer ${token}` },
-          params: { userId },
-        });
-        return res.data.history; // backend should return an array of history
-      } catch (err) {
-        return thunkAPI.rejectWithValue(err.response?.data || err.message);
-      }
+  }
+);
+export const getBalanceHistory = createAsyncThunk(
+  "credit/getBalanceHistory",
+  async ({ token, userId }, thunkAPI) => {
+    try {
+      const res = await apiService.get(API.ENDPOINTS.HISTORY_CREDITS, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { userId },
+      });
+      return res.data.history; // backend should return an array of history
+    } catch (err) {
+      return thunkAPI.rejectWithValue(err.response?.data || err.message);
     }
-  );
+  }
+);
 
-  export const getReport = createAsyncThunk(
-    "credit/getReport",
-    async ({ token, userId, filters }, thunkAPI) => {
-      try {
-        const res = await apiService.get(API.ENDPOINTS.REPORT_CREDITS, {
-          headers: { Authorization: `Bearer ${token}` },
-          params: { userId, ...filters }, // pass optional filters
-        });
-        return res.data; // backend should return report data
-      } catch (err) {
-        return thunkAPI.rejectWithValue(err.response?.data || err.message);
-      }
+export const getReport = createAsyncThunk(
+  "credit/getReport",
+  async ({ token, userId, filters }, thunkAPI) => {
+    try {
+      const res = await apiService.get(API.ENDPOINTS.REPORT_CREDITS, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { userId, ...filters }, // pass optional filters
+      });
+      return res.data; // backend should return report data
+    } catch (err) {
+      return thunkAPI.rejectWithValue(err.response?.data || err.message);
     }
-  );
+  }
+);
 // ---------------------- Slice ---------------------- //
 
 const creditSlice = createSlice({
@@ -86,9 +86,9 @@ const creditSlice = createSlice({
     addLoading: false,
     verifyLoading: false,
     error: null,
-    history: [],  
+    history: [],
     creditVerification: null,
-    report: null, 
+    report: null,
     reportLoading: false, // 🆕
 
   },

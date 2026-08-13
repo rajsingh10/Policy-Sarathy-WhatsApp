@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import API, { apiService } from "../config/api";
 import {
   addGroup,
   editGroup,
@@ -72,8 +73,11 @@ export const Groups = () => {
     items: groups,
     loading,
     error,
+    pagination,
   } = useSelector((state) => state.groups);
   const { list } = useSelector((state) => state.contacts);
+  const [groupsPage, setGroupsPage] = useState(1);
+  const [allContactsForDialog, setAllContactsForDialog] = useState<any[]>([]); // separate state for Assign dialog
   console.log("list", list);
   const [group, setGroups] = useState([]);
   const [errors, setErrors] = useState<{
@@ -106,10 +110,48 @@ export const Groups = () => {
     error: contactsError,
   } = useSelector((state: any) => state.contacts || { items: [] });
 
+  const [dialogPagination, setDialogPagination] = useState({
+    current_page: 1,
+    last_page: 1,
+    per_page: 15,
+    total: 0,
+    from: 1,
+    to: 15,
+  });
+  const [isDialogContactsLoading, setIsDialogContactsLoading] = useState(false);
+
+  // Fetch contacts for Assign dialog dynamically
   useEffect(() => {
-    dispatch(fetchGroups(token));
-    dispatch(fetchContacts());
-  }, [dispatch, token]);
+    if (!token || !isAssignDialogOpen) return;
+
+    const fetchContactsForDialog = async () => {
+      setIsDialogContactsLoading(true);
+      try {
+        const res = await apiService.get(API.ENDPOINTS.GET_CONTACT, {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { page: currentPage, limit: 15, search: searchContact }
+        });
+        setAllContactsForDialog(res.data?.data || []);
+        if (res.data?.pagination) {
+          setDialogPagination(res.data.pagination);
+        }
+      } catch (e) {
+        console.error("Failed to fetch contacts for dialog", e);
+      } finally {
+        setIsDialogContactsLoading(false);
+      }
+    };
+
+    const debounceTimer = setTimeout(() => {
+      fetchContactsForDialog();
+    }, 300);
+
+    return () => clearTimeout(debounceTimer);
+  }, [token, isAssignDialogOpen, currentPage, searchContact]);
+
+  useEffect(() => {
+    dispatch(fetchGroups({ token, page: groupsPage, limit: 15, search: searchTerm }));
+  }, [dispatch, token, groupsPage]);
 
   useEffect(() => {
     if (groups && Array.isArray(groups)) {
@@ -231,21 +273,10 @@ export const Groups = () => {
     return groupIds.flatMap((g: any) => (Array.isArray(g) ? g : [g]));
   };
 
-  const filteredContacts = list.filter((contact) => {
-    const matchesSearch =
-      contact.name.toLowerCase().includes(searchContact.toLowerCase()) ||
-      contact.phone.toLowerCase().includes(searchContact.toLowerCase());
-
+  const filteredContacts = allContactsForDialog.filter((contact) => {
     const normalizedIds = normalizeGroupIds(contact.groupIds);
-    const isNotInGroup =
-      !selectedGroup || !normalizedIds.includes(String(selectedGroup));
-
-    return matchesSearch && isNotInGroup;
+    return !selectedGroup || !normalizedIds.includes(String(selectedGroup));
   });
-  const totalPages = Math.ceil(filteredContacts.length / CONTACTS_PER_PAGE);
-  const startIndex = (currentPage - 1) * CONTACTS_PER_PAGE;
-  const endIndex = startIndex + CONTACTS_PER_PAGE;
-  const paginatedContacts = filteredContacts.slice(startIndex, endIndex);
   const openAssignDialog = (groupId: string) => {
     console.log("groupId", groupId);
     setSelectedGroup(groupId);
@@ -257,8 +288,11 @@ export const Groups = () => {
       .map((contact) => String(contact.id));
 
     setSelectedContacts(preSelected);
+    setCurrentPage(1);
+    setSearchContact("");
     setIsAssignDialogOpen(true);
   };
+
 
   const toggleContact = (id: number | string) => {
     setSelectedContacts((prev) =>
@@ -310,12 +344,12 @@ export const Groups = () => {
       render: (value: string) =>
         value
           ? value
-              .split(" ")
-              .map(
-                (word) =>
-                  word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-              )
-              .join(" ")
+            .split(" ")
+            .map(
+              (word) =>
+                word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+            )
+            .join(" ")
           : "",
     },
     {
@@ -327,12 +361,12 @@ export const Groups = () => {
         <span className="text-muted-foreground">
           {value
             ? value
-                .split(" ")
-                .map(
-                  (word) =>
-                    word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-                )
-                .join(" ")
+              .split(" ")
+              .map(
+                (word) =>
+                  word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+              )
+              .join(" ")
             : "No description"}
         </span>
       ),
@@ -369,25 +403,32 @@ export const Groups = () => {
       <Button
         variant="ghost"
         size="sm"
+        className="h-9 px-3 bg-purple-100 text-purple-700 hover:bg-purple-200 hover:text-purple-900"
         onClick={() => openAssignDialog(item.id)}
       >
-        <UserPlus className="w-4 h-4" />
+        Assign
       </Button>
 
       <Button
         variant="ghost"
         size="sm"
+        className="h-9 px-3 bg-blue-100 text-blue-700 hover:bg-blue-200 hover:text-blue-900"
         onClick={() => handleViewGroup(item.id, item.name)}
       >
-        <Eye className="w-4 h-4" />
+        View
       </Button>
-      <Button variant="ghost" size="sm" onClick={() => handleEdit(item)}>
-        <Edit className="w-4 h-4" />
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-9 px-3 bg-amber-100 text-amber-700 hover:bg-amber-200 hover:text-amber-900"
+        onClick={() => handleEdit(item)}
+      >
+        Edit
       </Button>
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <Button variant="ghost" size="sm" className="text-destructive ">
-            <Trash2 className="w-4 h-4" />
+          <Button variant="ghost" size="sm" className="h-9 px-3 bg-red-100 text-red-600 hover:bg-red-200 hover:text-red-800">
+            Delete
           </Button>
         </AlertDialogTrigger>
         <AlertDialogContent>
@@ -415,16 +456,16 @@ export const Groups = () => {
   if (loading) return <BaseLoading message="Loading..." />;
   console.log("filteredContacts", filteredContacts);
   return (
-    <div className="container max-w-7xl mx-auto px-4">
+    <div className="container max-w-7xl mx-auto px-0 sm:px-6 lg:px-4">
       {/* Header */}
-      <div className="flex flex-col justify-between sm:flex-row lg:justify-between sm:items-center gap-4 mb-8">
+      <div className="flex flex-col justify-between sm:flex-row lg:justify-between sm:items-center gap-2 sm:gap-4 mb-3 sm:mb-8">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Contact Groups</h1>
           <p className="text-muted-foreground mt-2">
             Organize and manage your contact group
           </p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
           <Dialog
             open={isCreateDialogOpen}
             onOpenChange={setIsCreateDialogOpen}
@@ -496,53 +537,43 @@ export const Groups = () => {
             </DialogContent>
           </Dialog>
 
-          <Dialog
-            open={isAssignDialogOpen}
-            onOpenChange={setIsAssignDialogOpen}
-          >
-            <DialogContent className="sm:max-w-[700px] ">
+          <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
+            <DialogContent className="max-w-full sm:max-w-[700px] w-[95%] sm:w-auto p-4 sm:p-6 overflow-y-auto max-h-[90vh]">
               <DialogHeader>
-                <DialogTitle>Assign Contacts to Group</DialogTitle>
-                <DialogDescription>
+                <DialogTitle className="text-base sm:text-lg">Assign Contacts to Group</DialogTitle>
+                <DialogDescription className="text-sm sm:text-base">
                   Search and select contacts to add them into this group.
                 </DialogDescription>
               </DialogHeader>
 
               {/* Search Bar */}
-              <div className="relative mb-4">
+              <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   placeholder="Search contacts..."
                   value={searchContact}
                   onChange={(e) => {
                     setSearchContact(e.target.value);
-                    setCurrentPage(1); // reset page on search
+                    setCurrentPage(1);
                   }}
                   className="pl-10"
                 />
               </div>
 
               {/* Contacts List */}
-              <div className="max-h-64 overflow-y-auto space-y-2">
-                {contactsLoading ? (
-                  <p className="text-center text-muted-foreground">
-                    Loading contacts...
-                  </p>
-                ) : contactsError ? (
-                  <p className="text-center text-destructive">
-                    Failed to load contacts
-                  </p>
-                ) : paginatedContacts.length > 0 ? (
-                  paginatedContacts.map((contact: any) => (
+              <div className="max-h-64 overflow-y-auto space-y-2 mt-2">
+                {isDialogContactsLoading ? (
+                  <p className="text-center text-muted-foreground">Loading contacts...</p>
+                ) : filteredContacts.length > 0 ? (
+                  filteredContacts.map((contact: any) => (
                     <div
                       key={contact.id}
-                      className="flex items-center justify-between border p-2 rounded-md"
+                      className="flex items-center justify-between border p-2 rounded-md bg-card"
                     >
-                      <div>
-                        <p className="font-medium">{contact.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {contact.phone}
-                        </p>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-sm sm:text-base">{contact.name}</span>
+                        <span className="text-muted-foreground">|</span>
+                        <span className="text-sm sm:text-base text-muted-foreground">{contact.phone}</span>
                       </div>
                       <Checkbox
                         checked={selectedContacts.includes(String(contact.id))}
@@ -551,45 +582,53 @@ export const Groups = () => {
                     </div>
                   ))
                 ) : (
-                  <p className="text-muted-foreground text-center py-4">
-                    No contacts found
-                  </p>
+                  <p className="text-muted-foreground text-center py-4">No contacts found</p>
                 )}
               </div>
 
-              {/* Pagination */}
-              <div className="flex items-center justify-between mt-4">
-                {/* Pagination */}
-                {totalPages > 1 && (
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={currentPage === 1}
-                      onClick={() => setCurrentPage((p) => p - 1)}
-                    >
-                      Previous
-                    </Button>
-                    <span className="text-sm text-muted-foreground">
-                      Page {currentPage} of {totalPages}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={currentPage === totalPages}
-                      onClick={() => setCurrentPage((p) => p + 1)}
-                    >
-                      Next
-                    </Button>
+              {/* Footer: Pagination & Actions */}
+              <div className="flex flex-col gap-3 border-t pt-3 mt-1">
+                {dialogPagination.last_page > 1 && (
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div className="text-sm text-muted-foreground hidden sm:block">
+                      Showing {dialogPagination.from || 1}–{dialogPagination.to || dialogPagination.total} of {dialogPagination.total} contacts
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={currentPage === 1}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setCurrentPage((p) => Math.max(1, p - 1));
+                        }}
+                      >
+                        Previous
+                      </Button>
+                      <div className="text-sm font-medium mx-2">
+                        Page {currentPage} of {dialogPagination.last_page}
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={currentPage === dialogPagination.last_page}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setCurrentPage((p) => Math.min(dialogPagination.last_page, p + 1));
+                        }}
+                      >
+                        Next
+                      </Button>
+                    </div>
                   </div>
                 )}
 
-                {/* Action Buttons */}
-                <div className="flex gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsAssignDialogOpen(false)}
-                  >
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => setIsAssignDialogOpen(false)}>
                     Cancel
                   </Button>
                   <Button
@@ -603,13 +642,14 @@ export const Groups = () => {
               </div>
             </DialogContent>
           </Dialog>
+
         </div>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6 mb-3 sm:mb-6">
         <Card className="card-elegant">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
@@ -626,7 +666,7 @@ export const Groups = () => {
           </CardContent>
         </Card>
         <Card className="card-elegant">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
@@ -642,8 +682,8 @@ export const Groups = () => {
             </div>
           </CardContent>
         </Card>
-        <Card className="card-elegant">
-          <CardContent className="p-6">
+        <Card className="card-elegant col-span-2 md:col-span-1">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
@@ -665,12 +705,12 @@ export const Groups = () => {
 
       {/* Groups Table */}
       <Card className="card-elegant">
-        <div className="flex flex-col justify-between sm:flex-row lg:justify-between sm:items-center gap-4 mb-6">
-          <CardHeader className="p-5">
+        <div className="flex flex-col justify-between sm:flex-row lg:justify-between sm:items-center gap-2 sm:gap-4 mb-2 sm:mb-6">
+          <CardHeader className="p-3 pb-1 sm:p-5">
             <CardTitle>Groups List</CardTitle>
             <CardDescription>Manage your contact group</CardDescription>
           </CardHeader>
-          <div className="relative w-64 mx-5">
+          <div className="relative mx-3 sm:mx-5 sm:w-64">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Search group by name, description, or tags..."
@@ -680,14 +720,43 @@ export const Groups = () => {
             />
           </div>
         </div>
-        <CardContent>
+        <CardContent className="p-2 pt-0 sm:p-6 sm:pt-0">
           <SortableTable
             data={filteredGroups}
             columns={columns}
-            itemsPerPage={10}
+            itemsPerPage={15}
             onRowAction={onRowAction}
             showColumn1Mobile={false}
+            hidePagination={true}
           />
+          {pagination && pagination.last_page > 1 && (
+            <div className="flex items-center justify-between p-4 border-t mt-4">
+              <div className="text-sm text-muted-foreground">
+                Showing {pagination.from || 1}–{pagination.to || pagination.total} of {pagination.total} groups
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setGroupsPage(p => Math.max(1, p - 1))}
+                  disabled={groupsPage === 1}
+                >
+                  Previous
+                </Button>
+                <div className="text-sm font-medium mx-2">
+                  Page {groupsPage} of {pagination.last_page}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setGroupsPage(p => Math.min(pagination.last_page, p + 1))}
+                  disabled={groupsPage === pagination.last_page}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

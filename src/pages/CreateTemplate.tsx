@@ -245,7 +245,7 @@ export const CreateTemplate = () => {
   };
 
   return (
-    <div className="container mx-auto space-y-6 px-4">
+    <div className="container mx-auto space-y-6 px-0 sm:px-6 lg:px-4">
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
@@ -811,6 +811,7 @@ export const CreateTemplate = () => {
                       );
                     })()}
                   </div>
+
                   {templateData.footer && (
                     <div className="text-[11px] text-muted-foreground mt-2 pt-2 border-t flex items-center justify-between">
                       <span>{templateData.footer}</span>

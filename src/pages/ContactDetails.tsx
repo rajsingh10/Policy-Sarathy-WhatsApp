@@ -146,7 +146,7 @@ const ContactDetails = () => {
   };
 
   return (
-    <div className="container max-w-6xl mx-auto p-6">
+    <div className="container max-w-6xl mx-auto px-0 sm:p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center space-x-4">

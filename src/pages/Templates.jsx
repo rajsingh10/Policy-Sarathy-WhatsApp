@@ -151,24 +151,24 @@ export const Templates = () => {
       const resultAction = await dispatch(
         editingTemplate
           ? editTemplate({
-              token,
-              templateId: editingTemplate.id,
-              groupData: {
-                name: formData.name,
-                category: formData.category,
-                language: formData.language,
-                components: formData.body,
-              },
-            })
+            token,
+            templateId: editingTemplate.id,
+            groupData: {
+              name: formData.name,
+              category: formData.category,
+              language: formData.language,
+              components: formData.body,
+            },
+          })
           : addTemplate({
-              token,
-              groupData: {
-                name: formData.name,
-                category: formData.category,
-                language: formData.language,
-                components: formData.body,
-              },
-            })
+            token,
+            groupData: {
+              name: formData.name,
+              category: formData.category,
+              language: formData.language,
+              components: formData.body,
+            },
+          })
       );
 
       if (
@@ -190,8 +190,8 @@ export const Templates = () => {
       } else {
         toast.error(
           resultAction.payload?.message ||
-            resultAction.payload ||
-            "Failed to save template"
+          resultAction.payload ||
+          "Failed to save template"
         );
       }
     } catch (err) {
@@ -358,29 +358,35 @@ export const Templates = () => {
   });
 
   const onRowAction = (template) => (
-    <div className="flex justify-end space-x-1">
+    <div className="flex justify-end gap-2">
       <Button
         variant="ghost"
         size="sm"
+        className="h-10 px-4 bg-blue-100 text-blue-700 hover:bg-blue-200 hover:text-blue-900"
         onClick={() => navigate(`/templates/${template.id}`)}
         title="View template"
       >
-        <Eye className="w-4 h-4" />
+        View
       </Button>
       {template.isCustom && (
         <>
           <Button
             variant="ghost"
             size="sm"
+            className="h-10 px-4 bg-amber-100 text-amber-700 hover:bg-amber-200 hover:text-amber-900"
             onClick={() => handleEdit(template)}
             title="Edit template"
           >
-            <Edit className="w-4 h-4" />
+            Edit
           </Button>
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="sm" className="text-destructive">
-                <Trash2 className="w-4 h-4" />
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-10 px-4 bg-red-100 text-red-600 hover:bg-red-200 hover:text-red-800"
+              >
+                Delete
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
@@ -410,7 +416,7 @@ export const Templates = () => {
   if (loading) return <BaseLoading message="Loading..." />;
 
   return (
-    <div className="container max-w-7xl mx-auto px-4">
+    <div className="container max-w-7xl mx-auto px-0 sm:px-6 lg:px-4">
       {/* Status Modal */}
       <Dialog open={isStatusModalOpen} onOpenChange={setIsStatusModalOpen}>
         <DialogContent>
@@ -453,32 +459,32 @@ export const Templates = () => {
       </Dialog>
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4 mb-2">
         {/* Header */}
         <div className="w-full sm:w-auto">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
             Templates
           </h1>
-          <p className="text-muted-foreground mt-2">
+          <p className="text-muted-foreground mt-0 sm:mt-2">
             Create and manage WhatsApp message templates
           </p>
         </div>
 
         {/* Buttons */}
-        <div className="flex flex-col sm:flex-row md:flex-row sm:space-x-3 space-y-2 sm:space-y-0 w-full md:w-auto">
-          <Button
-            className="bg-gradient-primary w-full sm:w-auto flex justify-center"
-            onClick={() => navigate("/bulk-send")}
-          >
-            <Users className="w-4 h-4 mr-2" />
-            Bulk Send
-          </Button>
-          {profile?.activePackage?.packageName !== "Small Business" && (
-            <>
+        <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+          <div className="flex flex-row gap-2 w-full sm:w-auto sm:contents">
+            <Button
+              className="bg-gradient-primary flex-1 sm:flex-none justify-center px-2 sm:px-4 text-xs sm:text-sm whitespace-nowrap"
+              onClick={() => navigate("/bulk-send")}
+            >
+              <Users className="w-4 h-4 mr-1 sm:mr-2" />
+              Bulk Send
+            </Button>
+            {/* {profile?.activePackage?.packageName !== "Small Business" && (
               <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="bg-gradient-primary hover:shadow-glow w-full sm:w-auto flex justify-center">
-                    <Plus className="w-4 h-4 mr-2" />
+                  <Button className="bg-gradient-primary hover:shadow-glow flex-1 sm:flex-none justify-center px-2 sm:px-4 text-xs sm:text-sm whitespace-nowrap">
+                    <Plus className="w-4 h-4 mr-1 sm:mr-2" />
                     New Template
                   </Button>
                 </DialogTrigger>
@@ -543,16 +549,17 @@ export const Templates = () => {
                   </form>
                 </DialogContent>
               </Dialog>
-
-              <Button
-                className="bg-gradient-primary w-full sm:w-auto flex justify-center"
-                onClick={() => navigate("/templates/new")}
-              >
-                <Users className="w-5 h-5 mr-2" />
-                Requested Template
-              </Button>
-            </>
-          )}
+            )} */}
+          </div>
+          {/* {profile?.activePackage?.packageName !== "Small Business" && (
+            <Button
+              className="bg-gradient-primary w-full sm:w-auto flex justify-center"
+              onClick={() => navigate("/templates/new")}
+            >
+              <Users className="w-4 h-4 mr-2" />
+              Requested Template
+            </Button>
+          )} */}
         </div>
       </div>
 
@@ -562,14 +569,13 @@ export const Templates = () => {
         onValueChange={(value) =>
           dispatch({ type: "template/setActiveTab", payload: value })
         }
-        className="mb-6"
+        className="mb-0"
       >
         <TabsList
-          className={`grid w-full ${
-            profile?.activePackage?.packageName !== "Small Business"
-              ? "grid-cols-4"
-              : "grid-cols-2"
-          }`}
+          className={`grid w-full ${profile?.activePackage?.packageName !== "Small Business"
+            ? "grid-cols-4"
+            : "grid-cols-2"
+            }`}
         >
           <TabsTrigger value="all">All</TabsTrigger>
           <TabsTrigger value="system">Default</TabsTrigger>
@@ -582,16 +588,16 @@ export const Templates = () => {
             </>
           )}
         </TabsList>
-        <TabsContent value={activeTab}>
+        <TabsContent value={activeTab} className="mt-2">
           <Card className="card-elegant">
-            <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 sm:px-6 sm:py-4">
               <div>
                 <CardTitle>
                   {activeTab === "all"
                     ? "All Templates"
                     : activeTab.charAt(0).toUpperCase() +
-                      activeTab.slice(1) +
-                      " Templates"}
+                    activeTab.slice(1) +
+                    " Templates"}
                 </CardTitle>
                 <CardDescription>
                   {activeTab === "all"
@@ -609,7 +615,7 @@ export const Templates = () => {
                 />
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-0 sm:px-6 ">
               <SortableTable
                 data={filteredTemplates}
                 columns={columns}

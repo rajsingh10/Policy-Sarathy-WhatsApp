@@ -12,11 +12,21 @@ export const addContact = async (token, contactData) => {
 };
 
 // ✅ Get all contacts
-export const getContacts = async (token) => {
+export const getContacts = async (token, page = 1, limit = 15, search = "") => {
+  const params = {};
+  if (search) {
+    params.search = search;
+  } else {
+    params.per_page = limit;
+    if (page && page > 1) params.page = page;
+  }
+
   const res = await apiService.get(API.ENDPOINTS.GET_CONTACT, {
     headers: { Authorization: `Bearer ${token}` },
+    params
   });
-  return res.data.data;
+  // We return the full response data so we can access pagination in the slice
+  return res.data;
 };
 
 // ✅ Get contact by ID
@@ -29,6 +39,7 @@ export const getContactById = async (token, id) => {
 
 // ✅ Update contact
 export const updateContact = async (token, id, contactData) => {
+  console.log("idiiii", id)
   const res = await apiService.put(`${API.ENDPOINTS.UPDATE_CONTACT}/${id}`, contactData, {
     headers: {
       Authorization: `Bearer ${token}`,

@@ -27,7 +27,7 @@ class ErrorBoundary extends React.Component {
       return (
         <ErrorPage
           message={this.state.error?.message || "Something went wrong"}
-          resetError={this.resetError} // optional retry button
+          resetError={this.resetError} 
         />
       );
     }

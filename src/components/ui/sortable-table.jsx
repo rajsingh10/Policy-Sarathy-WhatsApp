@@ -24,6 +24,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
+import { useLocation } from "react-router-dom";
 
 const SortableTable = ({
   data = [],
@@ -32,11 +33,14 @@ const SortableTable = ({
   onRowAction,
   renderCell,
   showColumn1Mobile = true,
+  hidePagination = false, // 🆕 Add hidePagination prop
 }) => {
   const [sortField, setSortField] = useState(null);
   const [sortDirection, setSortDirection] = useState("asc");
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedRows, setExpandedRows] = useState(new Set());
+  const location = useLocation();
+  const shouldHidePagination = hidePagination || location.pathname === "/campaigns";
 
   // 🔹 Truncate helper
   const truncateText = (text, maxLength = 10) => {
@@ -296,7 +300,7 @@ const SortableTable = ({
 
                       <div className="pl-3 pb-2 space-y-1 ">
                         {columns
-                           .filter(
+                          .filter(
                             (column, index) =>
                               index !== 0 && // exclude first column
                               column.type !== "checkbox" &&
@@ -333,8 +337,61 @@ const SortableTable = ({
       </div>
 
       {/* ===== PAGINATION ===== */}
-      {totalPages > 1 && (
+      {/* {totalPages > 1 && (
         <div className="flex flex-col sm:flex-row items-center justify-between px-3 py-3 sm:px-2">
+          <div className="text-sm text-muted-foreground mb-2 sm:mb-0">
+            Showing {startIndex + 1}–
+            {Math.min(startIndex + itemsPerPage, sortedData.length)} of{" "}
+            {sortedData.length} items
+          </div>
+
+          <Pagination className="justify-end flex-wrap">
+            <PaginationContent className="flex flex-wrap items-center gap-1">
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  className={
+                    currentPage === 1
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
+                />
+              </PaginationItem>
+
+              {getPaginationRange().map((page, idx) => (
+                <PaginationItem key={idx}>
+                  {page === "..." ? (
+                    <span className="px-3 text-muted-foreground">...</span>
+                  ) : (
+                    <PaginationLink
+                      onClick={() => handlePageChange(page)}
+                      isActive={currentPage === page}
+                      className="cursor-pointer"
+                    >
+                      {page}
+                    </PaginationLink>
+                  )}
+                </PaginationItem>
+              ))}
+
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  className={
+                    currentPage === totalPages
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )} */}
+
+      {/* 🔹 Enhanced Desktop Pagination */}
+      {!shouldHidePagination && totalPages > 1 && (
+        <div className="hidden md:flex justify-between items-center p-4 border-t border-gray-100 bg-gray-50/50">
           <div className="text-sm text-muted-foreground mb-2 sm:mb-0">
             Showing {startIndex + 1}–
             {Math.min(startIndex + itemsPerPage, sortedData.length)} of{" "}

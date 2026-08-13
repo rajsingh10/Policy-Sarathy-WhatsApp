@@ -331,19 +331,29 @@ const Users = () => {
   const onRowAction = (user) => (
     <div className="flex items-center justify-end space-x-2">
       <Button
-        variant="outline"
+        variant="ghost"
         size="sm"
+        className="h-9 px-3 bg-blue-100 text-blue-700 hover:bg-blue-200 hover:text-blue-900"
         onClick={() => navigate(`/users/${user.id}`)}
       >
-        <Eye className="w-4 h-4" />
+        View
       </Button>
-      <Button variant="outline" size="sm" onClick={() => openEditDialog(user)}>
-        <Edit className="w-4 h-4" />
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        className="h-9 px-3 bg-amber-100 text-amber-700 hover:bg-amber-200 hover:text-amber-900"
+        onClick={() => openEditDialog(user)}
+      >
+        Edit
       </Button>
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <Button variant="outline" size="sm">
-            <Trash2 className="w-4 h-4" />
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-9 px-3 bg-red-100 text-red-600 hover:bg-red-200 hover:text-red-800"
+          >
+            Delete
           </Button>
         </AlertDialogTrigger>
         <AlertDialogContent>

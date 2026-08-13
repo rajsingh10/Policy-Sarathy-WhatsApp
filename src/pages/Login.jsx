@@ -17,7 +17,7 @@ import { BaseLoading } from "../components/BaseLoading";
 
 export const Login = () => {
   const tokens = localStorage.getItem("token");
-  // console.log("token", tokens);
+  console.log("token", tokens);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
@@ -25,7 +25,7 @@ export const Login = () => {
   const dispatch = useDispatch();
   const { loading, error, token } = useSelector((state) => state.auth);
   const [errors, setErrors] = useState({});
-  // console.log(token);
+  console.log(token);
   useEffect(() => {
     if (token) {
       navigate("/dashboard"); // or redirect to last visited page if you track it

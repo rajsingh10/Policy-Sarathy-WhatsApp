@@ -63,8 +63,13 @@ export const CampaignDetailsPage = () => {
             const msg = res.messages[0];
             const audienceSize = msg.contactDetails?.length || 0;
 
-            const messageLog =
-              msg.contactDetails?.map((contact, index) => ({
+            setCampaign({
+              name: msg.campaignName,
+              status: msg.status,
+              sent: msg.status === "completed" ? audienceSize : 0,
+              read: 0,
+              failed: msg.status === "failed" ? audienceSize : 0,
+              messageLog: msg.contactDetails?.map((contact, index) => ({
                 id: contact.id,
                 sr: index + 1,
                 contactName: contact.name,
@@ -73,73 +78,15 @@ export const CampaignDetailsPage = () => {
                 templateName: msg.templateDetails?.name,
                 sendingDate: msg.sendingDate,
                 status: contact.delivery_status?.status || "pending", // ✅ Actual delivery status
-              })) || [];
-
-            // Debug: Log actual statuses to understand the data
-            console.log(
-              "Message statuses:",
-              messageLog.map((m) => m.status)
-            );
-
-            const deliverySummary = messageLog.reduce(
-              (acc, contact) => {
-                acc.total++;
-
-                switch (contact.status?.toLowerCase()) {
-                  case "completed":
-                    acc.completed++;
-                    break;
-
-                  case "sent":
-                    acc.sent++;
-                    acc.completed++;
-                    break;
-
-                  case "delivered":
-                    acc.delivered++;
-                    acc.completed++;
-                    break;
-
-                  case "read":
-                    acc.read++;
-                    acc.completed++;
-                    break;
-
-                  case "failed":
-                    acc.failed++;
-                    break;
-
-                  case "pending":
-                  case "scheduled":
-                  default:
-                    acc.pending++;
-                    break;
-                }
-
-                return acc;
-              },
-              {
-                completed: 0,
+              })),
+              delivery_summary: msg.delivery_summary || {
                 pending: 0,
                 sent: 0,
                 delivered: 0,
                 read: 0,
                 failed: 0,
                 total: 0,
-              }
-            );
-
-            // Debug: Log delivery summary calculation
-            console.log("Delivery summary:", deliverySummary);
-
-            setCampaign({
-              name: msg.campaignName,
-              status: msg.status,
-              sent: msg.status === "completed" ? audienceSize : 0,
-              read: 0,
-              failed: msg.status === "failed" ? audienceSize : 0,
-              messageLog,
-              delivery_summary: deliverySummary,
+              },
             });
           } else {
             setCampaign(null);
@@ -276,7 +223,7 @@ export const CampaignDetailsPage = () => {
   ];
 
   return (
-    <div className="container max-w-7xl mx-auto px-4 space-y-6">
+    <div className="container max-w-7xl mx-auto px-0 sm:px-6 lg:px-4">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-3 space-y-3 sm:space-y-0 mb-3">
         <div className="flex items-center space-x-3">
@@ -297,63 +244,38 @@ export const CampaignDetailsPage = () => {
       </div>
 
       {/* Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <Card>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        {/* <Card>
           <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-primary">
+              {campaign.delivery_summary.total}
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Total Messages Sent
+            </div>
+          </CardContent>
+        </Card> */}
+
+        <Card>
+          <CardContent className="px-2 py-4 sm:p-4 text-center">
             <div className="text-2xl font-bold text-success">
-              {campaign.delivery_summary.completed}
+              {campaign.delivery_summary.sent}
             </div>
-            <div className="text-sm text-muted-foreground">Completed</div>
+            <div className="text-sm text-muted-foreground">Sent</div>
             <div className="text-xs text-muted-foreground">
               {campaign.delivery_summary.total > 0
                 ? `${Math.round(
-                    (campaign.delivery_summary.completed /
-                      campaign.delivery_summary.total) *
-                      100
-                  )}%`
+                  (campaign.delivery_summary.sent /
+                    campaign.delivery_summary.total) *
+                  100
+                )}%`
                 : "0%"}
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-primary">
-              {campaign.delivery_summary.read}
-            </div>
-            <div className="text-sm text-muted-foreground">Read</div>
-            <div className="text-xs text-muted-foreground">
-              {campaign.delivery_summary.total > 0
-                ? `${Math.round(
-                    (campaign.delivery_summary.read /
-                      campaign.delivery_summary.total) *
-                      100
-                  )}%`
-                : "0%"}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-primary">
-              {campaign.delivery_summary.delivered}
-            </div>
-            <div className="text-sm text-muted-foreground">Delivered</div>
-            <div className="text-xs text-muted-foreground">
-              {campaign.delivery_summary.total > 0
-                ? `${Math.round(
-                    (campaign.delivery_summary.delivered /
-                      campaign.delivery_summary.total) *
-                      100
-                  )}%`
-                : "0%"}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4 text-center">
+          <CardContent className="px-2 py-4 sm:p-4 text-center">
             <div className="text-2xl font-bold text-warning">
               {campaign.delivery_summary.pending}
             </div>
@@ -361,17 +283,17 @@ export const CampaignDetailsPage = () => {
             <div className="text-xs text-muted-foreground">
               {campaign.delivery_summary.total > 0
                 ? `${Math.round(
-                    (campaign.delivery_summary.pending /
-                      campaign.delivery_summary.total) *
-                      100
-                  )}%`
+                  (campaign.delivery_summary.pending /
+                    campaign.delivery_summary.total) *
+                  100
+                )}%`
                 : "0%"}
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4 text-center">
+        <Card className="col-span-2 md:col-span-1 mb-3">
+          <CardContent className="px-2 py-4 sm:p-4 text-center">
             <div className="text-2xl font-bold text-destructive">
               {campaign.delivery_summary.failed}
             </div>
@@ -379,10 +301,10 @@ export const CampaignDetailsPage = () => {
             <div className="text-xs text-muted-foreground">
               {campaign.delivery_summary.total > 0
                 ? `${Math.round(
-                    (campaign.delivery_summary.failed /
-                      campaign.delivery_summary.total) *
-                      100
-                  )}%`
+                  (campaign.delivery_summary.failed /
+                    campaign.delivery_summary.total) *
+                  100
+                )}%`
                 : "0%"}
             </div>
           </CardContent>
@@ -418,28 +340,30 @@ export const CampaignDetailsPage = () => {
 
       {/* Message Logs */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+        <CardHeader className="px-2 sm:px-6 pb-3 ">
+          <CardTitle className="text-base flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             {/* Title */}
-            <div className="font-medium text-sm sm:text-base">Message Logs</div>
-            {/* Resend Button */}
-            {(campaign.delivery_summary.failed > 0 ||
-              campaign.delivery_summary.pending > 0) && (
-              <div>
+            <div className="text-lg font-semibold text-foreground">
+              Message Logs
+            </div>
+
+            {!["completed", "scheduled", "processing"].includes(
+              campaign.status
+            ) && (
                 <Button
                   variant="default"
                   size="sm"
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 text-sm"
                   onClick={() => setOpen(true)}
-                  className="flex items-center gap-1 w-full sm:w-auto justify-center"
                 >
-                  <Send className="w-4 h-4" /> Resend Messages (Failed/Pending)
+                  <Send className="w-4 h-4" />
+                  <span className="whitespace-nowrap">Resend Messages</span>
                 </Button>
-              </div>
-            )}
+              )}
           </CardTitle>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="px-0 sm:px-6">
           <SortableTable
             data={campaign.messageLog}
             columns={columns}

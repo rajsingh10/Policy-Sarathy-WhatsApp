@@ -14,6 +14,9 @@ import {
   UserCog,
   BarChart3,
   Package,
+  Activity,
+  Eye,
+  Inbox,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -29,9 +32,9 @@ export const Sidebar = ({ mobileOpen, setMobileOpen }) => {
     { title: "Templates", url: "/templates", icon: FileText },
 
     { title: "Bulk Send", url: "/bulk-send", icon: MessageSquare },
-
+    // { title: "Automation", url: "/automation", icon: Activity },
+    // { title: "Details", url: "/messageDetails", icon: Eye },
     // { title: "Credits", url: "/credits", icon: IndianRupee },
-
     // ...(role === "admin"
     //   ? [
     //     { title: "Packages", url: "/purchage", icon: Package },
@@ -43,9 +46,11 @@ export const Sidebar = ({ mobileOpen, setMobileOpen }) => {
     { title: "Groups", url: "/groups", icon: Folder },
 
     // { title: "Chat", url: "/chat", icon: MessageCircle },
+    { title: "Chat", url: "/message-inbox", icon: Inbox },
     // ...(role === "admin"
     //   ? [{ title: "Users", url: "/users", icon: UserCog }]
     //   : []),
+    // { title: "WABA Status", url: "/waba-status", icon: Activity },
     ...(role === "admin"
       ? [{ title: "Settings", url: "/settings", icon: Settings }]
       : []),
@@ -102,7 +107,7 @@ export const Sidebar = ({ mobileOpen, setMobileOpen }) => {
           <div className="text-sidebar-foreground/60 text-xs text-start">
             © {new Date().getFullYear()}{" "}
             <a
-              href="https://fableadtechnolabs.com"
+              href="https://www.fableadtech.com/"
               target="_blank"
               className="hover:underline"
               rel="noopener noreferrer"

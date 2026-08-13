@@ -9,6 +9,7 @@ export const BASE_URL = import.meta.env.VITE_BASE_URL;
 // API endpoints
 const API = {
   BASE_URL,
+
   ENDPOINTS: {
     login: "auth/login",
     PROFILE: "auth/profile",
@@ -29,12 +30,14 @@ const API = {
     DELETE_CONTACT: "contacts",
     DELETE_MULTIPLE_CONTACT: "/contacts/delete",
     CSV_FILE_CONTACT: "contacts/import",
+
     // media
     ADD_MEDIA: "media",
     GET_MEDIA: "media",
     GET_MEDIA_BY_ID: "media",
     UPDATE_MEDIA: "media",
     DELETE_MEDIA: "media",
+
     // groups
     GROUPS: "groups",
     ADD_GROUP: "/groups",
@@ -59,6 +62,13 @@ const API = {
     template_create: "template/create",
     //bulk send
     bulk_send: "bulkmessage",
+
+    // send message
+    SEND_MESSAGE: "send-whatsapp",
+    GET_SEND_MESSAGE: "bulkmessage",
+
+    // scheduler
+    SCHEDULE: "schedule",
     //admin users
     ALL_USERS: "users",
     ADD_USERS: "users/add",
@@ -66,10 +76,12 @@ const API = {
     UPDATE_STATUS: "users/status",
     UPDATE_USERS: "users/edit",
     SINGLE_USER: "users",
+
     // campaigns
     campaigns: "campaigns",
     edit_scheduled: "bulk-messages",
     delete_scheduled: "bulkmessage",
+
     //reports
     REPORTS: "reports",
     SEND_REPORT: "bulk-messages/resend",
@@ -79,6 +91,15 @@ const API = {
     // packages
     PACKAGES: "package/get",
     PLAN_HISTORY: "plan/history",
+
+    // conversations
+    CONVERSATIONS: "conversations",
+    CONVERSATIONS_MESSAGES: "/messages/send",
+    CONVERSATION_BY_ID: "conversations",
+    LATEST_CONTACTS: "conversations/latest/contacts",
+    UNREAD_CONVERSATIONS: "conversations/unread",
+    UPDATE_CONVERSATION_STATUS: "conversations",
+    CONVERSATION_STATS: "conversations/stats",
   },
 };
 
@@ -86,9 +107,6 @@ const API = {
 //   baseURL: "/api",
 // });
 
-// export const apiService = axios.create({
-//   baseURL: "/api",
-// });
 // Axios instance → always uses proxy (/api → backend)
 export const apiService = axios.create({
   baseURL: "/api",
@@ -124,5 +142,4 @@ apiService.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
 export default API;

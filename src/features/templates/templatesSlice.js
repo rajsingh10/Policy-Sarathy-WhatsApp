@@ -91,7 +91,7 @@ export const addCustomTemplate = createAsyncThunk(
     "template/addCustom",
     async ({ token, templateData }, thunkAPI) => {
         try {
-            // console.log("Submitting template data:", templateData);
+            console.log("Submitting template data:", templateData);
             const res = await apiService.post(
                 API.ENDPOINTS.template_create,
                 templateData,

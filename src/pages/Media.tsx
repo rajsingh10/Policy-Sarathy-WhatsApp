@@ -178,9 +178,9 @@ const Media = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 space-y-6">
+    <div className="container mx-auto px-0 sm:px-6 lg:px-4 space-y-4">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4">
         <div>
           <h1 className="text-2xl font-bold">Media Library</h1>
           <p className="text-muted-foreground text-sm">
@@ -243,10 +243,9 @@ const Media = () => {
                   >
                     <span
                       className={`absolute top-2 right-2 text-[11px] font-semibold px-2 py-1 rounded-full 
-                        ${
-                          file.mime_type.startsWith("image/")
-                            ? "bg-blue-500 text-white"
-                            : "bg-purple-500 text-white"
+                        ${file.mime_type.startsWith("image/")
+                          ? "bg-blue-500 text-white"
+                          : "bg-purple-500 text-white"
                         } 
                         z-10 shadow-md`}
                     >
@@ -393,7 +392,7 @@ const Media = () => {
         <DialogContent className="max-w-5xl p-0 h-auto">
           {previewImage &&
             (previewImage.endsWith(".mp4") ||
-            previewImage.includes("video") ? (
+              previewImage.includes("video") ? (
               <video
                 src={previewImage}
                 controls

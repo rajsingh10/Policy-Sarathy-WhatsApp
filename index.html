@@ -14,6 +14,43 @@
       name="keywords"
       content="WhatsApp bulk, WhatsApp marketing, bulk messaging, WhatsApp business API, message templates, contact management, campaign analytics"
     />
+    <meta name="author" content="Fablead WA-Broadcast" />
+
+    <!-- Open Graph Meta Tags -->
+    <meta
+      property="og:title"
+      content="Fablead WA-Broadcast - Professional WhatsApp Marketing Platform"
+    />
+    <meta
+      property="og:description"
+      content="Professional Fablead WA-Broadcast for businesses. Send bulk messages, manage contacts, create templates, and track campaigns."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/dashboard-hero.jpg" />
+    <meta property="og:url" content="https://your-domain.com" />
+    <meta property="og:site_name" content="Fablead WA-Broadcast" />
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Fablead WA-Broadcast - Professional WhatsApp Marketing Platform"
+    />
+    <meta
+      name="twitter:description"
+      content="Professional Fablead WA-Broadcast for businesses. Send bulk messages, manage contacts, create templates, and track campaigns."
+    />
+    <meta name="twitter:image" content="/dashboard-hero.jpg" />
+
+    <!-- Theme and Mobile Optimization -->
+    <meta name="theme-color" content="#FF9933" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Fablead WA-Broadcast" />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://your-domain.com" />
   </head>
   <body>
     <div id="root"></div>
@@ -35,6 +72,7 @@
       // Run cleanup initially
       cleanupAttributes();
 
+      // Set up MutationObserver to clean up dynamically added elements
       const observer = new MutationObserver(function (mutations) {
         mutations.forEach(function (mutation) {
           mutation.addedNodes.forEach(function (node) {
@@ -45,10 +83,14 @@
         });
       });
 
+      // Start observing the document with the configured parameters
       observer.observe(document.body, {
         childList: true,
         subtree: true,
       });
+
+      // Optionally, you can disconnect the observer later if needed
+      // observer.disconnect();
     </script>
   </body>
 </html>

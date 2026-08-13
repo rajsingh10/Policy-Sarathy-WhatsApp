@@ -50,6 +50,8 @@ interface ContactSelectionCardProps {
   searchTerm: string;
   filterGroups: string[];
   itemsPerPage?: number;
+  pagination?: any;
+  onPageChange?: (page: number) => void;
 }
 
 export const ContactSelectionCardedit: React.FC<ContactSelectionCardProps> = ({
@@ -64,6 +66,8 @@ export const ContactSelectionCardedit: React.FC<ContactSelectionCardProps> = ({
   searchTerm,
   filterGroups,
   itemsPerPage = 50, // default per page
+  pagination,
+  onPageChange,
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -128,7 +132,7 @@ export const ContactSelectionCardedit: React.FC<ContactSelectionCardProps> = ({
 
   return (
     <Card className="card-elegant">
-      <CardHeader>
+      <CardHeader className="px-2 sm:px-6 pt-4 pb-2">
         <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <span className="flex items-center space-x-2 mb-2">
             <Users className="w-5 h-5" />
@@ -149,7 +153,7 @@ export const ContactSelectionCardedit: React.FC<ContactSelectionCardProps> = ({
           )}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="px-2 sm:px-6 space-y-3 pt-2">
         <div className="flex flex-col sm:flex-row gap-3 sm:space-x-4">
           <div className="flex-1">
             <Input

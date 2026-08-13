@@ -27,7 +27,6 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  MessageSquareCode,
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -36,26 +35,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { BaseLoading } from "../components/BaseLoading";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
-
-const StatCard = ({ title, value, icon: Icon, color }) => {
-  return (
-    <div className="flex items-center justify-between rounded-2xl border bg-white px-5 py-4 min-w-[160px]">
-      <div className="space-y-1">
-        <p className="text-sm font-medium text-muted-foreground">{title}</p>
-        <p className={`text-2xl font-bold ${color}`}>{value}</p>
-      </div>
-
-      <div
-        className={cn(
-          "w-9 h-9 rounded-full flex items-center justify-center border",
-          color.replace("text", "border")
-        )}
-      >
-        <Icon className={cn("h-5 w-5", color)} />
-      </div>
-    </div>
-  );
-};
 
 const Reports = () => {
   const [dateFrom, setDateFrom] = useState<Date>();
@@ -80,7 +59,7 @@ const Reports = () => {
           phone: contact?.phone || "-",
           templateName: row.templateDetails?.name || "-",
           sendingDate: row.sendingDate,
-          status: row.status || "pending",
+          status: contact?.delivery_status?.status || row.status || "pending",
         }))
       )
       ?.map((row: any, index: number) => ({
@@ -132,9 +111,8 @@ const Reports = () => {
   // Stats
   const stats = {
     total: summaryData?.totalMessages || 0,
-    completed: summaryData?.completed || 0,
-    delivered: summaryData?.delivered || 0,
-    read: summaryData?.read || 0,
+    complate: summaryData?.completed || 0,
+    // delivered: summaryData?.delivered || 0,
     failed: summaryData?.failed || 0,
     pending: summaryData?.pending || 0,
     scheduled: summaryData?.scheduled || 0,
@@ -182,6 +160,18 @@ const Reports = () => {
         const statusConfig: any = {
           completed: {
             color: "bg-success text-success-foreground",
+            icon: CheckCircle,
+          },
+          read: {
+            color: "bg-blue-600 text-white",
+            icon: CheckCircle, // or Eye
+          },
+          delivered: {
+            color: "bg-green-600 text-white",
+            icon: CheckCircle,
+          },
+          sent: {
+            color: "bg-gray-500 text-white",
             icon: CheckCircle,
           },
           failed: {
@@ -291,9 +281,9 @@ const Reports = () => {
   if (loading) return <BaseLoading message="Loading..." />;
 
   return (
-    <div className="container mx-auto px-4 space-y-6">
+    <div className="container mx-auto px-0 sm:px-6 lg:px-4 space-y-3 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col justify-between sm:flex-row lg:justify-between sm:items-center gap-4 mb-8">
+      <div className="flex flex-col justify-between sm:flex-row lg:justify-between sm:items-center gap-2 sm:gap-4 mb-0">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Reports</h1>
           <p className="text-muted-foreground">
@@ -321,68 +311,148 @@ const Reports = () => {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4">
-        <StatCard
-          title="All Messages"
-          value={stats.total}
-          icon={MessageSquare}
-          color="text-blue-600"
-        />
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
+        <Card className="card-elegant">
+          <CardContent className="p-4 py-6 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">
+                All Messages
+              </p>
+              <p className="text-2xl font-bold text-foreground">
+                {stats.total}
+              </p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <MessageSquare className="h-6 w-6 text-primary" />
+            </div>
+          </CardContent>
+        </Card>
 
-        <StatCard
-          title="Completed"
-          value={stats.completed}
-          icon={CheckCircle}
-          color="text-green-600"
-        />
+        <Card className="card-elegant">
+          <CardContent className="p-4 py-6 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">
+                Delivered
+              </p>
+              <p className="text-2xl font-bold text-success">
+                {stats.complate}
+              </p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <CheckCircle className="h-6 w-6 text-success" />
+            </div>
+          </CardContent>
+        </Card>
+        {/* <Card className="card-elegant">
+          <CardContent className="p-4 py-6 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Delivered</p>
+              <p className="text-2xl font-bold text-success">{stats.delivered}</p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <CheckCircle className="h-6 w-6 text-success" />
+            </div>
+          </CardContent>
+        </Card> */}
 
-        <StatCard
-          title="Read"
-          value={stats.read}
-          icon={MessageSquareCode}
-          color="text-yellow-500"
-        />
+        <Card className="card-elegant">
+          <CardContent className="p-4 py-6 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">
+                Failed
+              </p>
+              <p className="text-2xl font-bold text-destructive">
+                {stats.failed}
+              </p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <XCircle className="h-6 w-6 text-destructive" />
+            </div>
+          </CardContent>
+        </Card>
 
-        <StatCard
-          title="Delivered"
-          value={stats.delivered}
-          icon={CheckCircle}
-          color="text-indigo-600"
-        />
+        <Card className="card-elegant">
+          <CardContent className="p-4 py-6 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">
+                Pending
+              </p>
+              <p className="text-2xl font-bold text-warning">{stats.pending}</p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Clock className="h-6 w-6 text-warning" />
+            </div>
+          </CardContent>
+        </Card>
 
-        <StatCard
-          title="Failed"
-          value={stats.failed}
-          icon={XCircle}
-          color="text-red-600"
-        />
-
-        <StatCard
-          title="Pending"
-          value={stats.pending}
-          icon={Clock}
-          color="text-orange-500"
-        />
-
-        <StatCard
-          title="Scheduled"
-          value={stats.scheduled}
-          icon={Clock}
-          color="text-purple-600"
-        />
+        <Card className="card-elegant col-span-2 md:col-span-1">
+          <CardContent className="p-4 py-6 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">
+                Scheduled
+              </p>
+              <p className="text-2xl font-bold text-primary ">
+                {stats.scheduled}
+              </p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Clock className="h-6 w-6 text-primary" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
-
+      {/* <div className="py-0">
+        <Card className="card-elegant">
+          <CardHeader>
+            <CardTitle>Performance Metrics</CardTitle>
+            <CardDescription>
+              Message delivery and engagement statistics
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium">Delivery Rate</span>
+                  <span className="text-sm font-bold text-success">100%</span>
+                </div>
+                <div className="w-full bg-muted rounded-full h-2">
+                  <div className="bg-success h-2 rounded-full" />
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium">Read Rate</span>
+                  <span className="text-sm font-bold text-primary">20%</span>
+                </div>
+                <div className="w-full bg-muted rounded-full h-2">
+                  <div className="bg-primary h-2 rounded-full" />
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium">Success Rate</span>
+                  <span className="text-sm font-bold text-primary">50%</span>
+                </div>
+                <div className="w-full bg-muted rounded-full h-2">
+                  <div className="bg-primary h-2 rounded-full" />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div> */}
       {/* Filters */}
       <Card className="card-elegant">
-        <CardHeader>
+        <CardHeader className="p-3 pb-0 sm:px-6 sm:pt-6">
           <CardTitle className="flex items-center gap-2">
             <Filter className="w-5 h-5" />
             Filters
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div className="space-y-2">
+        <CardContent className="p-3 sm:px-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-4">
+            <div className="space-y-1 sm:space-y-2">
               <Label htmlFor="search">Search</Label>
               <Input
                 id="search"
@@ -393,7 +463,7 @@ const Reports = () => {
             </div>
 
             {/* Date From */}
-            <div className="space-y-2">
+            <div className="space-y-1 sm:space-y-2">
               <Label>From Date</Label>
               <Popover>
                 <PopoverTrigger asChild>
@@ -421,7 +491,7 @@ const Reports = () => {
             </div>
 
             {/* Date To */}
-            <div className="space-y-2">
+            <div className="space-y-1 sm:space-y-2">
               <Label>To Date</Label>
               <Popover>
                 <PopoverTrigger asChild>
@@ -449,7 +519,7 @@ const Reports = () => {
             </div>
 
             {/* Status Filter */}
-            <div className="space-y-2">
+            <div className="space-y-1 sm:space-y-2">
               <Label htmlFor="status">Status</Label>
               <select
                 id="status"
@@ -481,14 +551,14 @@ const Reports = () => {
 
       {/* Reports Table */}
       <Card className="card-elegant">
-        <CardHeader>
+        <CardHeader className="p-3 pb-0 sm:p-6">
           <CardTitle>Message Reports</CardTitle>
           <p className="text-sm text-muted-foreground">
             Showing {filteredData.length} of {data?.messages?.length || 0}{" "}
             reports
           </p>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-2 pt-2 sm:p-6 sm:pt-0">
           <SortableTable
             data={filteredData}
             columns={columns}

@@ -31,9 +31,12 @@ const SortableTableDaynemic = ({
   columns = [],
   itemsPerPage = 15,
   onRowAction,
+  onRowClick,
   renderCell,
+  rowClassName = "",
   showColumn1Mobile = true,
   serverPaginated = false,
+  minWidthClass = "min-w-[800px]",
 }) => {
   const [sortField, setSortField] = useState(null);
   const [sortDirection, setSortDirection] = useState("asc");
@@ -166,16 +169,15 @@ const SortableTableDaynemic = ({
       <div className="w-full overflow-x-auto">
         {/* ✅ Desktop Table */}
         <div className="hidden sm:block">
-          <div className="min-w-[800px]">
+          <div className={minWidthClass}>
             <Table>
               <TableHeader>
                 <TableRow>
                   {columns.map((column) => (
                     <TableHead
                       key={column.key}
-                      className={`${column.width || "w-auto"} ${
-                        column.minWidth || "min-w-[100px]"
-                      }`}
+                      className={`${column.width || "w-auto"} ${column.minWidth || "min-w-[100px]"
+                        }`}
                     >
                       {column.sortable !== false ? (
                         <Button
@@ -211,7 +213,11 @@ const SortableTableDaynemic = ({
                   </TableRow>
                 ) : (
                   paginatedData.map((item, index) => (
-                    <TableRow key={item.id || index}>
+                    <TableRow
+                      key={item.id || index}
+                      onClick={() => onRowClick && onRowClick(item)}
+                      className={`${onRowClick ? 'cursor-pointer hover:bg-muted/50' : ''} ${rowClassName}`}
+                    >
                       {columns.map((column) => (
                         <TableCell key={column.key}>
                           {cellRenderer(item, column)}
@@ -261,7 +267,8 @@ const SortableTableDaynemic = ({
                 return (
                   <div
                     key={id}
-                    className="border border-muted/30 rounded-lg shadow-sm overflow-hidden bg-white"
+                    onClick={() => onRowClick && onRowClick(item)}
+                    className={`border border-muted/30 rounded-lg shadow-sm overflow-hidden bg-white ${onRowClick ? 'cursor-pointer' : ''}`}
                   >
                     <div className="flex items-start items-center justify-between p-2">
                       <div className="flex items-center gap-3">
@@ -293,9 +300,8 @@ const SortableTableDaynemic = ({
 
                     {/* Expanded Content */}
                     <div
-                      className={`transition-all duration-300 ease-in-out overflow-hidden  ${
-                        isOpen ? "max-h-96 " : "max-h-0 p-0"
-                      }`}
+                      className={`transition-all duration-300 ease-in-out overflow-hidden  ${isOpen ? "max-h-96 " : "max-h-0 p-0"
+                        }`}
                     >
                       <hr className="w-full h-0.5  rounded-full bg-primary mb-3" />
 

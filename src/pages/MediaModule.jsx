@@ -239,7 +239,7 @@ export default function MediaModule() {
   };
 
   return (
-    <div className="container max-w-7xl mx-auto p-6 space-y-8">
+    <div className="container max-w-7xl mx-auto px-0 sm:px-6 lg:px-4 sm:py-6 space-y-8">
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="space-y-2">
@@ -347,7 +347,6 @@ export default function MediaModule() {
                               </AlertDialogTitle>
                               <AlertDialogDescription>
                                 Are you sure you want to delete this media file?
-                                This action cannot be undone.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>

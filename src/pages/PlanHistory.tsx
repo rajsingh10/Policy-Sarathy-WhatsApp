@@ -1,11 +1,5 @@
-import React, { useEffect } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import React, { useEffect, useState } from "react";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,38 +22,34 @@ import { fetchPlan } from "../features/package/packagesSlice";
 const PlanHistory: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
   const { planData, loading, error } = useSelector((state) => state.packages);
-  // console.log("sksksksksksk", planData);
-  const { profile: UserProfile } = useSelector(
-    (state: { auth: ProfileState }) => state.auth
-  );
+  const { profile: UserProfile } = useSelector((state) => state.auth);
   const userId = UserProfile ? UserProfile.id : null;
-  // console.log("object", userId);
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token && userId) {
+      dispatch(fetchPlan({ token, id: userId }));
+    }
+  }, [dispatch, userId]);
+
+  const formatDate = (dateString: string) =>
+    new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
     });
-  };
-  useEffect(() => {
-    const token = localStorage.getItem("token"); // read token inside effect
-    if (token && userId) {
-      dispatch(fetchPlan({ token, id: userId }));
-    }
-  }, [dispatch, userId]); // only depend on dispatch and userId
 
   const getStatusBadge = (status: number) => {
     if (status === 1) {
       return (
-        <Badge
-        className="bg-emerald-500/10 text-emerald-600 border-emerald-200 hover:bg-emerald-500/10 hover:text-emerald-600 hover:border-emerald-200 cursor-default"
-      >
-        <CheckCircle className="w-3 h-3 mr-1" />
-        Active
-      </Badge>
-      
+        <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-200 hover:bg-emerald-500/10 hover:text-emerald-600 hover:border-emerald-200 cursor-default">
+          <CheckCircle className="w-3 h-3 mr-1" />
+          Active
+        </Badge>
       );
     } else {
       return (
@@ -96,9 +86,22 @@ const PlanHistory: React.FC = () => {
     return Math.max(0, diffDays);
   };
 
+  const filteredPlans = planData.filter((plan: any) => plan.status === 1);
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredPlans.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentPlans = filteredPlans.slice(startIndex, startIndex + itemsPerPage);
+
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
   return (
-    <div className="container mx-auto px-4 space-y-6">
-      {/* Header */}
+    <div className="container mx-auto px-0 sm:px-6 lg:px-4 space-y-6">
       <div className="flex items-center gap-4">
         <Button
           variant="ghost"
@@ -117,20 +120,10 @@ const PlanHistory: React.FC = () => {
         </div>
       </div>
 
-      {/* Plan History List */}
       <Card className="overflow-hidden">
-        {/* <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Package className="w-5 h-5" />
-            Subscription History
-          </CardTitle>
-          <CardDescription>
-            Your complete plan purchase and subscription history
-          </CardDescription>
-        </CardHeader> */}
         <CardContent className="p-0">
           <div className="divide-y">
-            {planData.map((plan, index) => (
+            {currentPlans.map((plan) => (
               <div
                 key={plan._id}
                 className="p-6 hover:bg-muted/30 transition-colors"
@@ -147,9 +140,7 @@ const PlanHistory: React.FC = () => {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    {getStatusBadge(plan.status)}
-                  </div>
+                  <div>{getStatusBadge(plan.status)}</div>
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
@@ -170,22 +161,24 @@ const PlanHistory: React.FC = () => {
                     <div>
                       <p className="text-xs text-muted-foreground">Messages</p>
                       <p className="font-medium">
-                        {plan?.packageId?.msgCount?.toLocaleString()}
+                        {plan.packageId.msgCount.toLocaleString()}
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  {/* <div className="flex items-center gap-2">
                     <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
                       <FileText className="w-4 h-4 text-green-600 dark:text-green-400" />
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground">Templates</p>
+                      <p className="text-xs text-muted-foreground">
+                        Custom Templates
+                      </p>
                       <p className="font-medium">
                         {plan.packageId.templateCount}
                       </p>
                     </div>
-                  </div>
+                  </div> */}
 
                   <div className="flex items-center gap-2">
                     <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
@@ -195,10 +188,7 @@ const PlanHistory: React.FC = () => {
                       <p className="text-xs text-muted-foreground">Days Left</p>
                       <p className="font-medium">
                         {plan.status === 1
-                          ? `${calculateDaysRemaining(
-                              plan.endDate,
-                              plan.status
-                            )}`
+                          ? calculateDaysRemaining(plan.endDate, plan.status)
                           : "0"}
                       </p>
                     </div>
@@ -212,6 +202,18 @@ const PlanHistory: React.FC = () => {
                       <p className="text-xs text-muted-foreground">Purchased</p>
                       <p className="font-medium">
                         {formatDate(plan.createdAt)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
+                      <Calendar className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Renewal</p>
+                      <p className="font-medium">
+                        {formatDate(plan.endDate)}
                       </p>
                     </div>
                   </div>
@@ -242,13 +244,37 @@ const PlanHistory: React.FC = () => {
         </CardContent>
       </Card>
 
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-3 mt-6">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={currentPage === 1}
+            onClick={() => handlePageChange(currentPage - 1)}
+          >
+            Prev
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            Page {currentPage} of {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={currentPage === totalPages}
+            onClick={() => handlePageChange(currentPage + 1)}
+          >
+            Next
+          </Button>
+        </div>
+      )}
+
       {/* Empty State */}
       {planData.length === 0 && (
         <Card className="text-center py-12">
           <CardContent>
             <Package className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
             <CardTitle className="mb-2">No Plan History</CardTitle>
-        
           </CardContent>
         </Card>
       )}

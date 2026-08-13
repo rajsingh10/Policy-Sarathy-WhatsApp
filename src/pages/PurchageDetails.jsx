@@ -24,13 +24,14 @@ import { BaseLoading } from "../components/BaseLoading";
 const PurchaseDetails = () => {
   const dispatch = useDispatch();
   const { data, loading, error } = useSelector((state) => state.packages);
+  console.log(data);
   useEffect(() => {
     const token = localStorage.getItem("token");
     dispatch(fetchPackages(token));
   }, [dispatch]);
   if (loading) return <BaseLoading message="Loading..." />;
   return (
-    <div className="container mx-auto px-4 space-y-8">
+    <div className="container mx-auto px-0 sm:px-6 lg:px-4 space-y-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         {/* Header */}

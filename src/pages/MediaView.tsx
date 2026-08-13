@@ -4,11 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { 
-  ArrowLeft, 
-  Download, 
-  Share2, 
-  Edit, 
+import {
+  ArrowLeft,
+  Download,
+  Share2,
+  Edit,
   Trash2,
   Copy,
   ExternalLink,
@@ -17,7 +17,7 @@ import {
   Image as ImageIcon,
   Video,
   FileText,
-  Music
+  Music,
 } from "lucide-react";
 
 const MediaView = () => {
@@ -40,35 +40,43 @@ const MediaView = () => {
       iso: "100",
       aperture: "f/2.8",
       shutter: "1/125s",
-      focal: "85mm"
-    }
+      focal: "85mm",
+    },
   };
 
   const getFileIcon = (type: string) => {
     switch (type) {
-      case 'image': return <ImageIcon className="h-6 w-6" />;
-      case 'video': return <Video className="h-6 w-6" />;
-      case 'audio': return <Music className="h-6 w-6" />;
-      default: return <FileText className="h-6 w-6" />;
+      case "image":
+        return <ImageIcon className="h-6 w-6" />;
+      case "video":
+        return <Video className="h-6 w-6" />;
+      case "audio":
+        return <Music className="h-6 w-6" />;
+      default:
+        return <FileText className="h-6 w-6" />;
     }
   };
 
   const getFileTypeColor = (type: string) => {
     switch (type) {
-      case 'image': return 'bg-green-100 text-green-800';
-      case 'video': return 'bg-blue-100 text-blue-800';
-      case 'audio': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "image":
+        return "bg-green-100 text-green-800";
+      case "video":
+        return "bg-blue-100 text-blue-800";
+      case "audio":
+        return "bg-purple-100 text-purple-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -78,14 +86,10 @@ const MediaView = () => {
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
+    <div className="container mx-auto px-0 sm:p-6 max-w-6xl">
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={() => navigate('/media')}
-        >
+        <Button variant="outline" size="sm" onClick={() => navigate("/media")}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Media
         </Button>
@@ -124,28 +128,26 @@ const MediaView = () => {
           <Card>
             <CardContent className="p-6">
               <div className="aspect-video bg-muted rounded-lg flex items-center justify-center overflow-hidden">
-                {mediaFile.type === 'image' ? (
-                  <img 
-                    src={mediaFile.url} 
+                {mediaFile.type === "image" ? (
+                  <img
+                    src={mediaFile.url}
                     alt={mediaFile.name}
                     className="w-full h-full object-contain"
                   />
-                ) : mediaFile.type === 'video' ? (
-                  <video 
-                    src={mediaFile.url} 
+                ) : mediaFile.type === "video" ? (
+                  <video
+                    src={mediaFile.url}
                     controls
                     className="w-full h-full"
                   />
-                ) : mediaFile.type === 'audio' ? (
-                  <audio 
-                    src={mediaFile.url} 
-                    controls
-                    className="w-full"
-                  />
+                ) : mediaFile.type === "audio" ? (
+                  <audio src={mediaFile.url} controls className="w-full" />
                 ) : (
                   <div className="text-center">
                     {getFileIcon(mediaFile.type)}
-                    <p className="mt-2 text-muted-foreground">Preview not available</p>
+                    <p className="mt-2 text-muted-foreground">
+                      Preview not available
+                    </p>
                   </div>
                 )}
               </div>
@@ -189,7 +191,9 @@ const MediaView = () => {
                   {Object.entries(mediaFile.metadata).map(([key, value]) => (
                     <div key={key}>
                       <span className="font-medium capitalize">{key}:</span>
-                      <span className="ml-2 text-muted-foreground">{value}</span>
+                      <span className="ml-2 text-muted-foreground">
+                        {value}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -210,10 +214,12 @@ const MediaView = () => {
                 <HardDrive className="h-4 w-4 text-muted-foreground" />
                 <div>
                   <p className="text-sm font-medium">Size</p>
-                  <p className="text-sm text-muted-foreground">{mediaFile.size}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {mediaFile.size}
+                  </p>
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-3">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
                 <div>
@@ -229,7 +235,9 @@ const MediaView = () => {
                   <ImageIcon className="h-4 w-4 text-muted-foreground" />
                   <div>
                     <p className="text-sm font-medium">Dimensions</p>
-                    <p className="text-sm text-muted-foreground">{mediaFile.dimensions}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {mediaFile.dimensions}
+                    </p>
                   </div>
                 </div>
               )}
@@ -246,10 +254,12 @@ const MediaView = () => {
                 <code className="flex-1 p-2 bg-muted rounded text-xs break-all">
                   {window.location.origin + mediaFile.url}
                 </code>
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   variant="outline"
-                  onClick={() => copyToClipboard(window.location.origin + mediaFile.url)}
+                  onClick={() =>
+                    copyToClipboard(window.location.origin + mediaFile.url)
+                  }
                 >
                   <Copy className="h-3 w-3" />
                 </Button>

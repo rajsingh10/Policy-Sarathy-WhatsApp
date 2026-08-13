@@ -10,7 +10,7 @@ import API, { apiService } from "../../config/api";
 export const refreshToken = createAsyncThunk(
   "auth/refreshToken",
   async (token, thunkAPI) => {
-    // console.log(token);
+    console.log(token);
     try {
       const response = await apiService.post(
         API.ENDPOINTS.REFRESH_TOKEN,

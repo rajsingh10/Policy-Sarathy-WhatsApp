@@ -13,6 +13,12 @@ export default defineConfig(({ mode }) => ({
         changeOrigin: true,
         secure: false,
       },
+      "/cors-proxy": {
+        target: "https://policysarthi-whatsapp.fableadtech.in/services",
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/cors-proxy/, ''),
+      },
     },
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(

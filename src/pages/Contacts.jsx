@@ -23,6 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -61,6 +62,7 @@ import {
   Folder,
   CheckCircle,
   Trash2Icon,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import SortableTable from "../components/ui/sortable-table";
@@ -82,12 +84,14 @@ import { BaseLoading } from "../components/BaseLoading";
 export const Contacts = () => {
   const dropdownRef = useRef(null);
   const token = localStorage.getItem("token");
-  const { list, loading, error } = useSelector((state) => state.contacts);
+  const { list, loading, error, pagination } = useSelector((state) => state.contacts);
   const { items: groups } = useSelector((state) => state.groups);
   const dispatch = useDispatch();
   const [contacts, setContacts] = useState([]);
   const [availableGroups, setAvailableGroups] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [limit, setLimit] = useState(15);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isGroupDialogOpen, setIsGroupDialogOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -143,10 +147,15 @@ export const Contacts = () => {
 
   useEffect(() => {
     if (token) {
-      dispatch(fetchContacts(token));
-      dispatch(fetchGroups(token));
+      const delayDebounceFn = setTimeout(() => {
+        dispatch(fetchContacts({ token, page: currentPage, limit, search: searchTerm }));
+        // Only fetch groups once if needed, but keeping it here for consistency
+        dispatch(fetchGroups(token));
+      }, 400);
+
+      return () => clearTimeout(delayDebounceFn);
     }
-  }, [token, dispatch]);
+  }, [token, dispatch, currentPage, limit, searchTerm]);
 
   const addTag = () => {
     if (newTag.trim() && !formData.tags.includes(newTag.trim())) {
@@ -243,7 +252,7 @@ export const Contacts = () => {
         setContacts([...contacts, result]);
         toast.success("Contact added successfully");
       }
-      dispatch(fetchContacts(token));
+      dispatch(fetchContacts({ token, page: currentPage, limit, search: searchTerm }));
       resetForm();
     } catch (err) {
       toast.error(err.message || "Failed to save contact");
@@ -251,24 +260,24 @@ export const Contacts = () => {
   };
 
   const handleBulkDeleteContacts = async () => {
-    if (selectedContacts.length === 0) return;
+    if (!selectedContacts.length) return toast.info("No contacts selected.");
 
     try {
-      // ✅ Prepare FormData for your API
       const formData = new FormData();
       selectedContacts.forEach((id) => formData.append("contact_ids[]", id));
 
-      // ✅ Dispatch Redux Thunk
       const resultAction = await dispatch(
         deleteMultipleContacts({ token, formData })
       );
 
       if (deleteMultipleContacts.fulfilled.match(resultAction)) {
         toast.success("Selected contacts deleted successfully.");
-
-        // Clear selections
         setSelectedContacts([]);
         setIsDeleteDialogOpen(false);
+
+        // Refresh contacts after deletion
+        setSearchTerm("");
+        dispatch(fetchContacts({ token, page: currentPage, limit, search: "" }));
       } else {
         throw new Error(resultAction.payload || "Delete failed");
       }
@@ -363,7 +372,8 @@ export const Contacts = () => {
   const handleDelete = async (id) => {
     try {
       await dispatch(removeContact({ token, id })).unwrap();
-      dispatch(fetchContacts(token));
+      setSearchTerm("");
+      dispatch(fetchContacts({ token, page: currentPage, limit, search: "" }));
       toast.success("Contact deleted successfully");
     } catch (err) {
       toast.error(err.message || "Failed to delete contact");
@@ -402,7 +412,7 @@ export const Contacts = () => {
       .unwrap()
       .then(() => {
         toast.success("Contacts added to group successfully");
-        dispatch(fetchContacts(token));
+        dispatch(fetchContacts({ token, page: currentPage, limit, search: searchTerm }));
         setSelectedContacts([]);
         setSelectedGroup("");
         setIsGroupDialogOpen(false);
@@ -449,7 +459,7 @@ export const Contacts = () => {
       key: "select",
       label: (
         <Checkbox
-          checked={selectedContacts.length === filteredContacts.length}
+          checked={filteredContacts.length > 0 && selectedContacts.length === filteredContacts.length}
           onCheckedChange={handleSelectAll}
         />
       ),
@@ -470,12 +480,12 @@ export const Contacts = () => {
       render: (value, row) =>
         value
           ? value
-              .split(" ")
-              .map(
-                (word) =>
-                  word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-              )
-              .join(" ")
+            .split(" ")
+            .map(
+              (word) =>
+                word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+            )
+            .join(" ")
           : "",
     },
     {
@@ -573,14 +583,23 @@ export const Contacts = () => {
   ];
 
   const onRowAction = (item) => (
-    <div className="flex justify-end space-x-2">
-      <Button variant="ghost" size="sm" onClick={() => handleEdit(item)}>
-        <Edit className="w-4 h-4" />
+    <div className="flex justify-end gap-2">
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-10 px-4 bg-amber-100 text-amber-700 hover:bg-amber-200 hover:text-amber-900"
+        onClick={() => handleEdit(item)}
+      >
+        Edit
       </Button>
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <Button variant="ghost" size="sm" className="text-destructive ">
-            <Trash2Icon className="w-4 h-4" />
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-10 px-4 bg-red-100 text-red-600 hover:bg-red-200 hover:text-red-800"
+          >
+            Delete
           </Button>
         </AlertDialogTrigger>
         <AlertDialogContent>
@@ -604,35 +623,31 @@ export const Contacts = () => {
     </div>
   );
 
-  if (loading) return <BaseLoading message="Loading..." />;
+  if (loading && (!list || list.length === 0)) return <BaseLoading message="Loading..." />;
 
   return (
-    <div className="container max-w-7xl mx-auto px-4">
+    <div className="container max-w-7xl mx-auto px-0 sm:px-6 lg:px-4">
       {/* Header */}
-      <div className="flex flex-col justify-between sm:flex-row lg:justify-between sm:items-center gap-4 mb-8">
+      <div className="flex flex-col justify-between sm:flex-row lg:justify-between sm:items-center gap-2 sm:gap-4 mb-2">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
             Contacts
           </h1>
-          <p className="text-muted-foreground mt-2">
+          <p className="text-muted-foreground mt-0 sm:mt-2">
             Manage your WhatsApp contact list
           </p>
         </div>
-        <div className="flex flex-col sm:flex-row gap-3 pt-4">
-          <Button variant="outline" onClick={exportContacts}>
-            <Download className="w-4 h-4 mr-2" />
-            Export
-          </Button>
-          <Button variant="outline" onClick={() => setIsImportModalOpen(true)}>
-            <Upload className="w-4 h-4 mr-2" /> Import
-          </Button>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <div className="flex flex-row gap-2 sm:contents">
+            <Button variant="outline" className="flex-1" onClick={exportContacts}>
+              <Download className="w-4 h-4 mr-2" />
+              Export
+            </Button>
+            <Button variant="outline" className="flex-1" onClick={() => setIsImportModalOpen(true)}>
+              <Upload className="w-4 h-4 mr-2" /> Import
+            </Button>
+          </div>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-gradient-primary hover:shadow-glow">
-                <Plus className="w-4 h-4 mr-2" />
-                Add Contact
-              </Button>
-            </DialogTrigger>
             <DialogContent className="max-h-[90vh] overflow-y-auto no-scrollbar">
               <DialogHeader>
                 <DialogTitle>
@@ -684,39 +699,54 @@ export const Contacts = () => {
                   </label>
 
                   {/* Dropdown trigger */}
-
-                  {/* Dropdown list */}
                   {dropdownOpen && (
                     <div
-                      className="absolute w-full -top-14 max-h-60 overflow-y-auto border border-input bg-white rounded-md mt-1 shadow-lg"
+                      className="absolute w-full -top-56 max-h-60 overflow-y-auto border border-input bg-white rounded-md mt-1 shadow-lg"
                       style={{ zIndex: 9999 }}
                     >
-                      {availableGroups.map((group) => (
-                        <div
-                          key={group.id}
-                          className={`px-3 py-2 cursor-pointer flex items-center justify-between hover:bg-gray-100 ${
-                            selectedGroups.includes(group.id)
+                      {availableGroups.length > 0 ? (
+                        availableGroups.map((group) => (
+                          <div
+                            key={group.id}
+                            className={`px-3 py-2 cursor-pointer flex items-center justify-between hover:bg-gray-100 ${selectedGroups.includes(group.id)
                               ? "text-blue-500 font-medium"
                               : ""
-                          }`}
-                          onClick={() => {
-                            if (selectedGroups.includes(group.id)) {
-                              setSelectedGroups(
-                                selectedGroups.filter((id) => id !== group.id)
-                              );
+                              }`}
+                            onClick={() => {
+                              if (selectedGroups.includes(group.id)) {
+                                setSelectedGroups(
+                                  selectedGroups.filter((id) => id !== group.id)
+                                );
+                                setDropdownOpen(false);
+                              } else {
+                                setSelectedGroups([...selectedGroups, group.id]);
+                                setDropdownOpen(false);
+                              }
+                            }}
+                          >
+                            <span className="text-sm">{group.name}</span>
+                            {selectedGroups.includes(group.id) && (
+                              <CheckCircle className="w-4 h-4 text-blue-500" />
+                            )}
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-4 text-center text-sm text-gray-500 flex flex-col items-center justify-center gap-2">
+                          <span>No groups found.</span>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-8"
+                            onClick={() => {
                               setDropdownOpen(false);
-                            } else {
-                              setSelectedGroups([...selectedGroups, group.id]);
-                              setDropdownOpen(false);
-                            }
-                          }}
-                        >
-                          <span className="text-sm">{group.name}</span>
-                          {selectedGroups.includes(group.id) && (
-                            <CheckCircle className="w-4 h-4 text-blue-500" />
-                          )}
+                              setIsCreateDialogOpen(true);
+                            }}
+                          >
+                            <Plus className="w-3 h-3 mr-1" /> Add Group
+                          </Button>
                         </div>
-                      ))}
+                      )}
                     </div>
                   )}
                   <div
@@ -758,59 +788,6 @@ export const Contacts = () => {
                   </div>
 
                   {/* Dropdown list */}
-                  {dropdownOpen && (
-                     <div
-                     className="absolute w-full max-h-60 overflow-y-auto border border-input bg-white rounded-md mt-1 shadow-lg"
-                     style={{
-                       zIndex: 9999,
-                       top:
-                         availableGroups?.length === 1
-                           ? '-1.2rem'
-                           : availableGroups?.length === 2
-                           ? '-3.5rem'
-                           : availableGroups?.length === 3
-                           ? '-6rem'
-                           : availableGroups?.length === 4
-                           ? '-8rem'
-                           : availableGroups?.length <= 5
-                           ? '-10rem'
-                           : availableGroups?.length <= 6
-                           ? '-12.5rem'
-                           : availableGroups?.length <= 7
-                           ? '-14rem'
-                           : availableGroups?.length <= 8
-                           ? '-14rem'
-                           : '-14rem',
-                     }}
-                   >
-                      {availableGroups.map((group) => (
-                        <div
-                          key={group.id}
-                          className={`px-3 py-2 cursor-pointer flex items-center justify-between hover:bg-gray-100 ${
-                            selectedGroups.includes(group.id)
-                              ? "text-blue-500 font-medium"
-                              : ""
-                          }`}
-                          onClick={() => {
-                            if (selectedGroups.includes(group.id)) {
-                              setSelectedGroups(
-                                selectedGroups.filter((id) => id !== group.id)
-                              );
-                              setDropdownOpen(false);
-                            } else {
-                              setSelectedGroups([...selectedGroups, group.id]);
-                              setDropdownOpen(false);
-                            }
-                          }}
-                        >
-                          <span className="text-sm">{group.name}</span>
-                          {selectedGroups.includes(group.id) && (
-                            <CheckCircle className="w-4 h-4 text-blue-500" />
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
 
                 <div className="flex justify-end space-x-3">
@@ -946,10 +923,16 @@ export const Contacts = () => {
 
       {/* Contacts Table */}
       <Card className="card-elegant">
-        <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <CardTitle>Contact List</CardTitle>
-            <CardDescription>Manage your WhatsApp contacts</CardDescription>
+        <CardHeader className="flex flex-col gap-3 p-3 pb-2">
+          <div className="flex flex-row items-start sm:items-center justify-between gap-2">
+            <div>
+              <CardTitle>Contact List</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">Manage your WhatsApp contacts</CardDescription>
+            </div>
+            <Button className="bg-gradient-primary hover:shadow-glow h-9 px-3 sm:px-4 flex-shrink-0" onClick={() => setIsAddDialogOpen(true)}>
+              <Plus className="w-4 h-4 mr-1 sm:mr-2" />
+              <span className="text-sm">Add Contact</span>
+            </Button>
           </div>
           <div className="flex flex-col sm:flex-row flex-wrap gap-3">
             <div className="relative flex-1">
@@ -961,231 +944,324 @@ export const Contacts = () => {
                 className="pl-10 w-full"
               />
             </div>
-            <Select value={filterGroup} onValueChange={setFilterGroup}>
-              <SelectTrigger className="w-full sm:w-[200px]">
-                <SelectValue placeholder="Filter by group" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Groups</SelectItem>
-                {availableGroups
-                  .filter((g) => g?.name?.trim())
-                  .map((group) => (
-                    <SelectItem key={group.id} value={group.id}>
-                      {group.name}
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
-            <Dialog
-              open={isCreateDialogOpen}
-              onOpenChange={setIsCreateDialogOpen}
-            >
-              <DialogTrigger asChild>
+            <div className="grid grid-cols-2 sm:flex sm:flex-row gap-3 w-full sm:w-auto">
+              <Select value={filterGroup} onValueChange={setFilterGroup}>
+                <SelectTrigger className="w-full sm:w-[200px]">
+                  <SelectValue placeholder="Filter by group" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Groups</SelectItem>
+                  {availableGroups
+                    .filter((g) => g?.name?.trim())
+                    .map((group) => (
+                      <SelectItem key={group.id} value={group.id}>
+                        {group.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+
+              <Dialog
+                open={isCreateDialogOpen}
+                onOpenChange={setIsCreateDialogOpen}
+              >
                 {selectedContacts.length === 0 && (
-                  <Button className="bg-gradient-primary hover:shadow-glow">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Create Group
-                  </Button>
+                  <DialogTrigger asChild>
+                    <Button className="w-full sm:w-auto bg-gradient-primary hover:shadow-glow px-2 sm:px-4">
+                      <Plus className="w-4 h-4 mr-1 sm:mr-2" />
+                      <span className="truncate">Create Group</span>
+                    </Button>
+                  </DialogTrigger>
                 )}
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Create New Group</DialogTitle>
-                  <DialogDescription>
-                    Create a new contact group
-                  </DialogDescription>
-                </DialogHeader>
-                <form onSubmit={handleGroupSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="groupName">Group Name *</Label>
-                    <Input
-                      id="groupName"
-                      value={groupFormData.name}
-                      onChange={(e) =>
-                        setGroupFormData({
-                          ...groupFormData,
-                          name: e.target.value,
-                        })
-                      }
-                      placeholder="Enter group name"
-                    />
-                    {groupFormErrors.name && (
-                      <p className="text-red-600 text-sm">
-                        {groupFormErrors.name}
-                      </p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="groupDescription">Description</Label>
-                    <Textarea
-                      id="groupDescription"
-                      value={groupFormData.description}
-                      onChange={(e) => {
-                        setGroupFormData({
-                          ...groupFormData,
-                          description: e.target.value,
-                        });
-
-                        // Optional: live validation
-                        if (e.target.value.length > 150) {
-                          setGroupFormErrors((prev) => ({
-                            ...prev,
-                            description:
-                              "Description must be under 150 characters",
-                          }));
-                        } else {
-                          setGroupFormErrors((prev) => {
-                            const { description, ...rest } = prev;
-                            return rest;
-                          });
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Create New Group</DialogTitle>
+                    <DialogDescription>
+                      Create a new contact group
+                    </DialogDescription>
+                  </DialogHeader>
+                  <form onSubmit={handleGroupSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="groupName">Group Name *</Label>
+                      <Input
+                        id="groupName"
+                        value={groupFormData.name}
+                        onChange={(e) =>
+                          setGroupFormData({
+                            ...groupFormData,
+                            name: e.target.value,
+                          })
                         }
-                      }}
-                      placeholder="Describe the purpose of this group"
-                      rows={3}
-                    />
+                        placeholder="Enter group name"
+                      />
+                      {groupFormErrors.name && (
+                        <p className="text-red-600 text-sm">
+                          {groupFormErrors.name}
+                        </p>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="groupDescription">Description</Label>
+                      <Textarea
+                        id="groupDescription"
+                        value={groupFormData.description}
+                        onChange={(e) => {
+                          setGroupFormData({
+                            ...groupFormData,
+                            description: e.target.value,
+                          });
 
-                    {groupFormErrors.description && (
-                      <p className="text-red-600 text-sm">
-                        {groupFormErrors.description}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex justify-end space-x-3">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setIsCreateDialogOpen(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button type="submit" className="bg-gradient-primary">
-                      Create Group
-                    </Button>
-                  </div>
-                </form>
-              </DialogContent>
-            </Dialog>
-            {selectedContacts.length > 0 && (
-              <>
-                <Dialog
-                  open={isGroupDialogOpen}
-                  onOpenChange={setIsGroupDialogOpen}
-                >
-                  <DialogTrigger asChild>
-                    <Button variant="outline">
-                      <UserPlus className="w-4 h-4 mr-2" />
-                      Add to Group ({selectedContacts.length})
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="">
-                    <DialogHeader>
-                      <DialogTitle>Add to Group</DialogTitle>
-                      <DialogDescription>
-                        Add {selectedContacts.length} selected contacts to a
-                        group
-                      </DialogDescription>
-                    </DialogHeader>
-                    {availableGroups.length > 0 ? (
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Label>Select Group</Label>
-                          <Select
-                            value={selectedGroup}
-                            onValueChange={setSelectedGroup}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Choose a group" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {availableGroups
-                                .filter((g) => g?.name?.trim())
-                                .map((group) => (
-                                  <SelectItem key={group.id} value={group.id}>
-                                    {group.name}
-                                  </SelectItem>
-                                ))}
-                            </SelectContent>
-                          </Select>
-                          {groupSelectError && (
-                            <p className="text-red-600 text-sm mt-1">
-                              {groupSelectError}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex justify-end space-x-3">
-                          <Button
-                            variant="outline"
-                            onClick={() => setIsGroupDialogOpen(false)}
-                          >
-                            Cancel
-                          </Button>
-                          <Button
-                            onClick={handleBulkAddToGroup}
-                            className="bg-gradient-primary"
-                          >
-                            Add to Group
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div>No groups available</div>
-                    )}
-                  </DialogContent>
-                </Dialog>
-                {/* <Dialog
-                  open={isDeleteDialogOpen}
-                  onOpenChange={setIsDeleteDialogOpen}
-                >
-                  <DialogTrigger asChild>
-                    <Button
-                      variant="destructive"
-                      disabled={selectedContacts.length === 0}
-                      className="flex items-center gap-2"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      Delete ({selectedContacts.length})
-                    </Button>
-                  </DialogTrigger>
+                          // Optional: live validation
+                          if (e.target.value.length > 150) {
+                            setGroupFormErrors((prev) => ({
+                              ...prev,
+                              description:
+                                "Description must be under 150 characters",
+                            }));
+                          } else {
+                            setGroupFormErrors((prev) => {
+                              const { description, ...rest } = prev;
+                              return rest;
+                            });
+                          }
+                        }}
+                        placeholder="Describe the purpose of this group"
+                        rows={3}
+                      />
 
-                  <DialogContent className="max-w-sm">
-                    <DialogHeader>
-                      <DialogTitle>Delete Contacts</DialogTitle>
-                      <DialogDescription>
-                        Are you sure you want to delete{" "}
-                        <strong>{selectedContacts.length}</strong> selected
-                        contact
-                        {selectedContacts.length > 1 ? "s" : ""}? This action
-                        cannot be undone.
-                      </DialogDescription>
-                    </DialogHeader>
-
-                    <div className="flex justify-end space-x-3 mt-4">
+                      {groupFormErrors.description && (
+                        <p className="text-red-600 text-sm">
+                          {groupFormErrors.description}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex justify-end space-x-3">
                       <Button
+                        type="button"
                         variant="outline"
-                        onClick={() => setIsDeleteDialogOpen(false)}
+                        onClick={() => setIsCreateDialogOpen(false)}
                       >
                         Cancel
                       </Button>
-                      <Button
-                        onClick={handleBulkDeleteContacts}
-                        className="bg-red-600 hover:bg-red-700 text-white"
-                      >
-                        Delete
+                      <Button type="submit" className="bg-gradient-primary">
+                        Create Group
                       </Button>
                     </div>
-                  </DialogContent>
-                </Dialog> */}
-              </>
+                  </form>
+                </DialogContent>
+              </Dialog>
+
+              {/* Add to Group Dialog moved inside the grid */}
+              <Dialog
+                open={isGroupDialogOpen}
+                onOpenChange={setIsGroupDialogOpen}
+              >
+                {selectedContacts.length > 0 && (
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="w-full sm:w-auto bg-primary/5 border-primary/20 hover:bg-primary/10 px-2 sm:px-4">
+                      <UserPlus className="w-4 h-4 mr-1 sm:mr-2 text-primary" />
+                      <span className="truncate">Add to Group ({selectedContacts.length})</span>
+                    </Button>
+                  </DialogTrigger>
+                )}
+                <DialogContent className="">
+                  <DialogHeader>
+                    <DialogTitle>Add to Group</DialogTitle>
+                    <DialogDescription>
+                      Add {selectedContacts.length} selected contacts to a
+                      group
+                    </DialogDescription>
+                  </DialogHeader>
+                  {availableGroups.length > 0 ? (
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Select Group</Label>
+                        <Select
+                          value={selectedGroup}
+                          onValueChange={setSelectedGroup}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choose a group" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-background border border-border shadow-md rounded-md z-[200]">
+                            {availableGroups
+                              .filter((g) => g?.name?.trim())
+                              .map((group) => (
+                                <SelectItem key={group.id} value={group.id}>
+                                  {group.name}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                        {groupSelectError && (
+                          <p className="text-red-600 text-sm mt-1">
+                            {groupSelectError}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between pt-1">
+                        <button
+                          type="button"
+                          className="text-sm text-primary bg-primary/10 hover:bg-primary/20 flex items-center border-primary gap-1 px-3 py-2.5 rounded-md transition-colors"
+                          onClick={() => {
+                            setIsGroupDialogOpen(false);
+                            setIsCreateDialogOpen(true);
+                          }}
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          Create New Group
+                        </button>
+                        <div className="flex gap-3">
+                          <button
+                            type="button"
+                            className="text-sm text-gray-700 bg-gray-200 hover:bg-gray-300 flex items-center gap-1 px-3 py-2.5 rounded-md transition-colors border border-gray-300"
+                            onClick={() => setIsGroupDialogOpen(false)}
+                          >
+                            <X className="w-3.5 h-3.5" />
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            className="text-sm text-white bg-primary hover:bg-primary/90 flex items-center gap-1 px-3 py-2.5 rounded-md transition-colors"
+                            onClick={handleBulkAddToGroup}
+                          >
+                            <UserPlus className="w-3.5 h-3.5" />
+                            Add to Group
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <p className="text-sm text-muted-foreground">No groups available. Create one first.</p>
+                      <div className="flex justify-between">
+                        <Button
+                          variant="outline"
+                          onClick={() => setIsGroupDialogOpen(false)}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          className="bg-gradient-primary"
+                          onClick={() => {
+                            setIsGroupDialogOpen(false);
+                            setIsCreateDialogOpen(true);
+                          }}
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Create Group
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            {/* Delete button remains outside the grid */}
+            {selectedContacts.length > 0 && (
+              <Dialog
+                open={isDeleteDialogOpen}
+                onOpenChange={setIsDeleteDialogOpen}
+              >
+                <DialogTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    disabled={selectedContacts.length === 0}
+                    className="w-full sm:w-auto flex items-center justify-center gap-2"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete ({selectedContacts.length})
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Delete Contacts</DialogTitle>
+                    <DialogDescription>
+                      Are you sure you want to delete {selectedContacts.length}{" "}
+                      selected contact(s)?
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsDeleteDialogOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={handleBulkDeleteContacts}
+                    >
+                      Delete
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             )}
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-2 pt-0 relative">
+          {loading && list && list.length > 0 && (
+            <div className="absolute inset-0 z-10 bg-white/50 backdrop-blur-[1px] flex items-center justify-center rounded-b-xl">
+              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          )}
           <SortableTable
             data={filteredContacts}
             columns={columns}
-            itemsPerPage={10}
+            itemsPerPage={limit}
             onRowAction={onRowAction}
+            hidePagination={true}
           />
+
+          {pagination && pagination.last_page > 1 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t">
+              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <span>Rows per page:</span>
+                  <select
+                    className="h-8 rounded-md border border-input bg-background px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    value={limit}
+                    onChange={(e) => {
+                      setLimit(Number(e.target.value));
+                      setCurrentPage(1); // Reset to first page when limit changes
+                    }}
+                  >
+                    {[15, 30, 50, 100, 200].map(pageSize => (
+                      <option key={pageSize} value={pageSize}>
+                        {pageSize}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <span>
+                  Showing {pagination.from || 1}–{pagination.to || pagination.total} of {pagination.total} contacts
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </Button>
+                <div className="text-sm font-medium mx-2">
+                  Page {currentPage} of {pagination.last_page}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => Math.min(pagination.last_page, p + 1))}
+                  disabled={currentPage === pagination.last_page}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

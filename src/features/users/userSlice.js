@@ -11,7 +11,7 @@ export const fetchUsers = createAsyncThunk(
       const res = await apiService.get(API.ENDPOINTS.ALL_USERS, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      // console.log(res);
+      console.log(res);
       return res.data.data; // API should return array of users
     } catch (err) {
       return thunkAPI.rejectWithValue(err.response?.data || err.message);

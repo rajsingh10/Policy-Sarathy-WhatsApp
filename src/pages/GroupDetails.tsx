@@ -205,6 +205,28 @@ export const GroupDetails: React.FC = () => {
         </div>
       ),
     },
+    // {
+    //   key: "email",
+    //   label: "Email",
+    //   sortable: true,
+    //   minWidth: "150px",
+    //   render: (value: string) => <span>{value || "-"}</span>,
+    // },
+    // {
+    //   key: "tags",
+    //   label: "Tags",
+    //   sortable: false,
+    //   minWidth: "150px",
+    //   render: (value: string[]) => (
+    //     <div className="flex flex-wrap gap-1">
+    //       {value.map((tag, index) => (
+    //         <Badge key={index} variant="secondary" className="text-xs">
+    //           {tag}
+    //         </Badge>
+    //       ))}
+    //     </div>
+    //   ),
+    // },
     {
       key: "status",
       label: "Status",
@@ -228,7 +250,7 @@ export const GroupDetails: React.FC = () => {
   if (loading) return <BaseLoading message="Loading..." />;
 
   return (
-    <div className="container max-w-7xl mx-auto px-4">
+    <div className="container max-w-7xl mx-auto px-0 sm:px-6 lg:px-4">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
@@ -338,6 +360,26 @@ export const GroupDetails: React.FC = () => {
             </div>
           </CardContent>
         </Card>
+        {/* <Card className="card-elegant">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">
+                  With Email
+                </p>
+                <p className="text-2xl font-bold text-foreground">
+                  {
+                    members.filter((c) => c.status?.toLowerCase() === "active")
+                      .length
+                  }
+                </p>
+              </div>
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Mail className="w-8 h-8 text-info" />
+              </div>
+            </div>
+          </CardContent>
+        </Card> */}
       </div>
 
       {/* Members Table */}

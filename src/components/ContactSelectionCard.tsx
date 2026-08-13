@@ -50,6 +50,8 @@ interface ContactSelectionCardProps {
   searchTerm: string;
   filterGroups: string[];
   itemsPerPage?: number;
+  pagination?: any;
+  onPageChange?: (page: number) => void;
 }
 
 export const ContactSelectionCard: React.FC<ContactSelectionCardProps> = ({
@@ -64,6 +66,8 @@ export const ContactSelectionCard: React.FC<ContactSelectionCardProps> = ({
   searchTerm,
   filterGroups,
   itemsPerPage = 50, // default per page
+  pagination,
+  onPageChange,
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -104,15 +108,38 @@ export const ContactSelectionCard: React.FC<ContactSelectionCardProps> = ({
   }, [searchTerm, filterGroups, contacts, groups]);
 
   // Pagination
-  const totalPages = Math.ceil(filteredContacts.length / itemsPerPage);
   const paginatedContacts = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage;
-    return filteredContacts.slice(start, start + itemsPerPage);
-  }, [filteredContacts, currentPage, itemsPerPage]);
+    if (pagination) return filteredContacts;
+    
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredContacts.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredContacts, currentPage, itemsPerPage, pagination]);
 
-  const handleNext = () =>
-    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
-  const handlePrev = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
+  const totalPages = pagination ? pagination.last_page : Math.ceil(filteredContacts.length / itemsPerPage);
+
+  const handleNext = () => {
+    if (pagination && onPageChange) {
+      if (pagination.current_page < pagination.last_page) {
+        onPageChange(pagination.current_page + 1);
+      }
+    } else {
+      if (currentPage < totalPages) {
+        setCurrentPage((prev) => prev + 1);
+      }
+    }
+  };
+
+  const handlePrev = () => {
+    if (pagination && onPageChange) {
+      if (pagination.current_page > 1) {
+        onPageChange(pagination.current_page - 1);
+      }
+    } else {
+      if (currentPage > 1) {
+        setCurrentPage((prev) => prev - 1);
+      }
+    }
+  };
 
   // Get group name from group ID
   const getGroupName = (groupId: string) => {
@@ -128,13 +155,13 @@ export const ContactSelectionCard: React.FC<ContactSelectionCardProps> = ({
 
   return (
     <Card className="card-elegant">
-      <CardHeader>
-        <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <span className="flex items-center space-x-2 mb-2">
+      <CardHeader className="px-2 sm:px-6 pt-2 pb-1 sm:pt-4 sm:pb-2">
+        <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
+          <span className="flex items-center space-x-2">
             <Users className="w-5 h-5" />
             <span>
               Select Contacts ({selectedContacts.length}/
-              {filteredContacts.length})
+              {pagination && pagination.total ? pagination.total : filteredContacts.length})
             </span>
           </span>
           {filterGroups.length === 0 && (
@@ -144,12 +171,12 @@ export const ContactSelectionCard: React.FC<ContactSelectionCardProps> = ({
               onClick={onSelectAll}
               className="w-full sm:w-auto"
             >
-              {selectedContacts.length > 0 ? "Deselect All" : "Select All"}
+              {selectedContacts.length > 0 && selectedContacts.length >= (pagination && pagination.total ? pagination.total : filteredContacts.length) ? "Deselect All" : "Select All"}
             </Button>
           )}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="px-2 sm:px-6 space-y-3 pt-2">
         <div className="flex flex-col sm:flex-row gap-3 sm:space-x-4">
           <div className="flex-1">
             <Input
@@ -157,7 +184,11 @@ export const ContactSelectionCard: React.FC<ContactSelectionCardProps> = ({
               value={searchTerm}
               onChange={(e) => {
                 onSearch(e.target.value);
-                setCurrentPage(1); // reset page on search
+                if (pagination && onPageChange) {
+                  onPageChange(1);
+                } else {
+                  setCurrentPage(1); // reset page on search
+                }
               }}
               className="w-full"
             />
@@ -170,7 +201,11 @@ export const ContactSelectionCard: React.FC<ContactSelectionCardProps> = ({
               onValueChange={(groupId) => {
                 if (groupId && !filterGroups.includes(groupId)) {
                   onFilterGroups([...filterGroups, groupId]);
-                  setCurrentPage(1);
+                  if (pagination && onPageChange) {
+                    onPageChange(1);
+                  } else {
+                    setCurrentPage(1);
+                  }
                 }
               }}
             >
@@ -262,7 +297,11 @@ export const ContactSelectionCard: React.FC<ContactSelectionCardProps> = ({
                         onSelectContacts(updatedSelectedContacts);
                       }
 
-                      setCurrentPage(1);
+                      if (pagination && onPageChange) {
+                        onPageChange(1);
+                      } else {
+                        setCurrentPage(1);
+                      }
                     }}
                   >
                     <X className="h-3 w-3 text-red-500" />
@@ -274,7 +313,7 @@ export const ContactSelectionCard: React.FC<ContactSelectionCardProps> = ({
         )}
 
         {/* Paginated Contact List */}
-        <div className="max-h-60 overflow-y-auto space-y-2">
+        <div className="max-h-60 overflow-y-auto space-y-1">
           {paginatedContacts.length > 0 ? (
             paginatedContacts.map((contact) => {
               const contactGroups = contactGroupsMap.get(contact.id) || [];
@@ -283,15 +322,16 @@ export const ContactSelectionCard: React.FC<ContactSelectionCardProps> = ({
               return (
                 <div
                   key={contact.id}
-                  className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50"
+                  className="flex items-center space-x-2 py-1.5 px-2 border rounded-lg hover:bg-muted/50"
                 >
                   <Checkbox
                     checked={selectedContacts.includes(contact.id)}
                     onCheckedChange={() => onSelectContact(contact.id)}
                   />
-                  <div className="flex-1">
-                    <div className="font-medium">{contact.name}</div>
-                    <div className="text-sm text-muted-foreground">
+                  <div className="flex-1 flex flex-row items-center gap-2 overflow-hidden">
+                    <div className="font-medium text-sm truncate">{contact.name}</div>
+                    <div className="w-px h-3 bg-gray-300 shrink-0"></div>
+                    <div className="text-xs text-muted-foreground whitespace-nowrap shrink-0">
                       {contact.phone}
                     </div>
                   </div>
@@ -347,24 +387,23 @@ export const ContactSelectionCard: React.FC<ContactSelectionCardProps> = ({
           )}
         </div>
 
-        {/* Pagination Controls */}
         <div className="flex justify-between mt-2 items-center">
           <Button
             size="sm"
             variant="outline"
             onClick={handlePrev}
-            disabled={currentPage === 1}
+            disabled={(pagination ? pagination.current_page : currentPage) === 1}
           >
             Previous
           </Button>
           <span>
-            Page {currentPage} of {totalPages}
+            Page {pagination ? pagination.current_page : currentPage} of {totalPages}
           </span>
           <Button
             size="sm"
             variant="outline"
             onClick={handleNext}
-            disabled={currentPage === totalPages}
+            disabled={(pagination ? pagination.current_page : currentPage) === totalPages}
           >
             Next
           </Button>

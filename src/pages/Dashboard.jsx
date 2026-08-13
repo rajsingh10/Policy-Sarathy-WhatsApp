@@ -21,20 +21,16 @@ import {
   Calendar,
   MessageCircle,
   User,
+  Eye,
+  Folder,
+  BarChart3,
+  ArrowRight,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
 import { useNavigate } from "react-router-dom";
 import { fetchDashboardData } from "../features/dashboard/dashboardSlice";
+import { fetchRcapenight } from "../features/reports/reportsSlice";
+import SortableTableDaynemic from "../components/ui/sortable-table-daynemic";
 import { useDispatch, useSelector } from "react-redux";
 import { BaseLoading } from "../components/BaseLoading";
 import { getBalanceHistory, getReport } from "../features/credits/creditSlice";
@@ -67,6 +63,97 @@ export const Dashboard = () => {
   }, [dispatch, token]);
   const { profile } = useSelector((state) => state.auth);
   const UserProfile = profile || {};
+
+  const { data: reportsData } = useSelector((state) => state.reports || {});
+  const [campaigns, setCampaigns] = useState([]);
+
+  useEffect(() => {
+    if (token) {
+      dispatch(fetchRcapenight({ token, filters: { status: "all", page: 1 } }));
+    }
+  }, [dispatch, token]);
+
+  useEffect(() => {
+    if (reportsData && reportsData.messages) {
+      const formatted = reportsData.messages.map((msg) => ({
+        id: msg.bulk_id,
+        name: msg.campaignName,
+        template: msg.templateDetails?.name || "N/A",
+        status: msg.status,
+        audienceSize: msg.audienceSize || 0,
+        createdAt: new Date(msg.sendingDate).toLocaleDateString(),
+        delivery_summary: msg.delivery_summary || {},
+      }));
+      setCampaigns(formatted.slice(0, 5));
+    }
+  }, [reportsData]);
+
+  const campaignColumns = [
+    {
+      key: "name",
+      label: "Campaign Name",
+      render: (value, item) => (
+        <div>
+          <div className="font-medium">{value}</div>
+          <div className="text-sm text-muted-foreground hidden sm:block">
+            Created: {item.createdAt}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "template",
+      label: "Template",
+      render: (value) => <Badge variant="outline">{value}</Badge>,
+    },
+    {
+      key: "audienceSize",
+      label: "Audience Size",
+      render: (value) => (
+        <div className="flex items-center space-x-2">
+          <Users className="w-4 h-4 text-muted-foreground" />
+          <span className="font-medium">{value}</span>
+        </div>
+      ),
+    },
+    {
+      key: "status",
+      label: "Status",
+      render: (value, item) => (
+        <div className="flex flex-col gap-2 items-start">
+          {item.delivery_summary ? (
+            <div className="flex flex-nowrap whitespace-nowrap gap-1.5 text-[11px] font-medium mt-1">
+              <span className="text-blue-700 bg-blue-50/80 border border-blue-200 px-1.5 py-0.5 rounded">
+                Read: {item.delivery_summary.read || 0}
+              </span>
+              <span className="text-gray-700 bg-gray-50/80 border border-gray-200 px-1.5 py-0.5 rounded">
+                Delivered: {item.delivery_summary.delivered || 0}
+              </span>
+              <span className="text-red-700 bg-red-50/80 border border-red-200 px-1.5 py-0.5 rounded">
+                Failed: {item.delivery_summary.failed || 0}
+              </span>
+              {(item.delivery_summary.pending > 0 || item.delivery_summary.processing > 0) && (
+                <span className="text-yellow-700 bg-yellow-50/80 border border-yellow-200 px-1.5 py-0.5 rounded">
+                  Pending: {(item.delivery_summary.pending || 0) + (item.delivery_summary.processing || 0)}
+                </span>
+              )}
+            </div>
+          ) : (
+            <span className={`capitalize text-xs font-medium px-2 py-1 rounded ${value === "completed"
+              ? "bg-green-100 text-green-700"
+              : value === "failed"
+                ? "bg-red-100 text-red-700"
+                : value === "scheduled"
+                  ? "bg-yellow-100 text-yellow-700"
+                  : "bg-gray-100 text-gray-700"
+              }`}>
+              {value}
+            </span>
+          )}
+        </div>
+      ),
+    },
+  ];
 
   const [isRenewalPopupOpen, setIsRenewalPopupOpen] = useState(false);
 
@@ -105,6 +192,7 @@ export const Dashboard = () => {
       icon: Users,
       color: "text-primary",
       bgColor: "bg-primary/10",
+      link: "/contacts",
     },
     {
       title: "Active Templates",
@@ -113,64 +201,68 @@ export const Dashboard = () => {
       icon: FileText,
       color: "text-info",
       bgColor: "bg-info/10",
+      link: "/templates",
     },
     {
       title: "Messages Sent",
-      value: (stats?.messagesSent ?? 0).toLocaleString(),
+      value: (stats?.usage?.yearlyUsedMessages ?? stats?.yearlyUsedMessages ?? 0).toLocaleString(),
       change: "+0%",
       icon: Send,
       color: "text-success",
       bgColor: "bg-success/10",
+      link: "/reports",
     },
     {
-      title: "Delivery Rate",
-      value: stats?.deliveryRate ?? "0%",
+      title: "Total Campaigns",
+      value: (reportsData?.summary?.totalCampaigns || 0).toLocaleString(),
       change: "+0%",
-      icon: CheckCircle,
+      icon: MessageSquare,
       color: "text-warning",
       bgColor: "bg-warning/10",
+      link: "/campaigns",
     },
   ];
 
   if (loading) return <BaseLoading message="Loading..." />;
 
   return (
-    <div className="container max-w-7xl mx-auto px-4">
+    <div className="container max-w-7xl mx-auto px-0 sm:px-6 lg:px-4">
       <RenewalPopup plan={UserProfile?.activePackage} isOpen={isRenewalPopupOpen} onOpenChange={setIsRenewalPopupOpen} />
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-3 sm:gap-0">
-        <div className="text-center sm:text-left">
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-2  sm:gap-0">
+        <div className=" sm:text-left">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
             Dashboard
           </h1>
-          <p className="text-muted-foreground mt-1 sm:mt-2">
+          <p className="text-muted-foreground mt-0 sm:mt-1">
             Welcome back! Here's your WhatsApp campaign overview.
           </p>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-6 mb-4">
         {StatsData.map((stat, index) => {
           const Icon = stat.icon;
           return (
             <Card
               key={index}
-              className="card-elegant hover:shadow-glow transition-all duration-300"
+              onClick={() => navigate(stat.link)}
+              className="card-elegant cursor-pointer group hover:shadow-glow transition-all duration-300"
             >
-              <CardContent className="p-6">
+              <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">
+                    <p className="text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">
                       {stat.title}
                     </p>
-                    <p className="text-2xl font-bold text-foreground mt-1">
+                    <p className="text-2xl font-bold text-foreground mt-1 group-hover:text-primary transition-colors">
                       {stat.value}
                     </p>
                   </div>
                   <div
-                    className={`w-12 h-12 rounded-xl ${stat.bgColor} flex items-center justify-center`}
+                    className={`w-12 h-12 rounded-xl ${stat.bgColor} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}
                   >
                     <Icon className={`w-8 h-8 ${stat.color}`} />
                   </div>
@@ -183,257 +275,108 @@ export const Dashboard = () => {
 
       {/* Message Analytics and Campaigns */}
       <div className="grid grid-cols-12 gap-6">
-        {/* Message Analytics (8 cols) */}
-        <div className="col-span-12 lg:col-span-8 flex flex-col">
+        {/* Recent Campaigns (9 cols) */}
+        <div className="col-span-12 lg:col-span-9 flex flex-col">
           <Card className="card-elegant h-full flex-1">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <MessageSquare className="w-5 h-5" />
-                <span>Message Analytics</span>
-              </CardTitle>
-              <CardDescription>
-                Daily message performance over the past week
-              </CardDescription>
+            <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-2 flex flex-row items-center justify-between">
+              <div className="space-y-1">
+                <CardTitle className="flex items-center space-x-2">
+                  <Send className="w-5 h-5" />
+                  <span>Recent Campaigns</span>
+                </CardTitle>
+                <CardDescription>
+                  Overview of your latest campaign activities
+                </CardDescription>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => navigate("/campaigns")} className="flex items-center gap-1.5">
+                View All
+                <ArrowRight className="w-4 h-4" />
+              </Button>
             </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={450}>
-                <LineChart data={messageAnalytics?.data ?? []}>
-                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                  <XAxis dataKey="day" />
-                  <YAxis />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "8px",
-                    }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="sent"
-                    stroke="hsl(var(--primary))"
-                    strokeWidth={3}
-                    name="Sent"
-                  />
-                  {messageAnalytics?.data?.[0]?.delivered !== undefined && (
-                    <Line
-                      type="monotone"
-                      dataKey="delivered"
-                      stroke="hsl(var(--success))"
-                      strokeWidth={2}
-                      name="Delivered"
-                    />
-                  )}
-                  {messageAnalytics?.data?.[0]?.read !== undefined && (
-                    <Line
-                      type="monotone"
-                      dataKey="read"
-                      stroke="hsl(var(--info))"
-                      strokeWidth={2}
-                      name="Read"
-                    />
-                  )}
-                </LineChart>
-              </ResponsiveContainer>
+            <CardContent className="p-0">
+              {campaigns?.length > 0 ? (
+                <SortableTableDaynemic
+                  data={campaigns}
+                  columns={campaignColumns}
+                  onRowClick={(item) => navigate(`/campaigns-details/${item.id}`, { state: { campaign: item } })}
+                  rowClassName="cursor-pointer border-b border-border/40 last:border-0 hover:bg-muted/50 transition-colors"
+                  showColumn1Mobile={false}
+                  minWidthClass="min-w-full"
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+                  <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6 shadow-sm border border-primary/20">
+                    <Send className="w-10 h-10 text-primary opacity-80" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">No campaigns yet</h3>
+                  <p className="text-sm text-muted-foreground max-w-[300px] mx-auto mb-6">
+                    You haven't sent any bulk messages or campaigns yet. Get started by creating your first campaign.
+                  </p>
+                  <Button onClick={() => navigate("/bulk-send")} className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-md transition-all duration-200 hover:scale-105">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create Campaign
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
 
-        {/* Campaign Status (4 cols) */}
-        <div className="col-span-12 lg:col-span-4 flex flex-col">
-          {UserProfile?.activePackage ? (
-            <Card className="card-elegant p-0 shadow-lg rounded-2xl bg-white flex-1 h-full">
-              <CardHeader className="flex items-center justify-between pt-4">
-                <div className="flex items-center gap-2">
-                  <Package className="w-6 h-6 text-indigo-500" />
-                  <CardTitle className="text-lg font-semibold">
-                    Active Package
-                  </CardTitle>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge
-                    className={`px-3 py-1 rounded-full font-medium ${new Date(UserProfile.activePackage.endDate) > new Date()
-                      ? "bg-green-100 text-green-800"
-                      : "bg-red-100 text-red-800"
-                      }`}
-                  >
-                    {new Date(UserProfile.activePackage.endDate) > new Date()
-                      ? "Active"
-                      : "Expired"}
-                  </Badge>
-                  {/* <Button size="sm" variant="outline" className="h-7 text-xs border-primary text-primary hover:bg-primary/10" onClick={() => setIsRenewalPopupOpen(true)}>
-                      Renew
-                    </Button> */}
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4 px-4">
-                {/* Package Info */}
-                <div className="bg-indigo-50 p-3 rounded-lg">
-                  <h3 className="text-lg font-semibold">
-                    {UserProfile.activePackage.packageName || "-"}
-                  </h3>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {UserProfile.activePackage.packageDesc || "-"}
-                  </p>
-                </div>
+        {/* Quick Actions (3 cols) */}
+        <div className="col-span-12 lg:col-span-3 flex flex-col">
+          <Card className="card-elegant h-full flex-1">
+            <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-6">
+              <CardTitle>Quick Actions</CardTitle>
+              <CardDescription>Get started with common tasks</CardDescription>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
+              <div className="flex flex-col gap-3">
 
-                {/* Dates Grid */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-indigo-50 p-3 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-indigo-500" />
-                      <span className="text-sm font-medium text-muted-foreground">
-                        Start Date
-                      </span>
-                    </div>
-                    <p className="text-sm mt-1">
-                      {UserProfile.activePackage.startDate
-                        ? new Date(
-                          UserProfile.activePackage.startDate
-                        ).toLocaleDateString()
-                        : "-"}
-                    </p>
-                  </div>
-                  <div className="bg-indigo-50 p-3 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-indigo-500" />
-                      <span className="text-sm font-medium text-muted-foreground">
-                        End Date
-                      </span>
-                    </div>
-                    <p className="text-sm mt-1">
-                      {UserProfile.activePackage.endDate
-                        ? new Date(
-                          UserProfile.activePackage.endDate
-                        ).toLocaleDateString()
-                        : "-"}
-                    </p>
-                  </div>
-                  <div className="bg-indigo-50 p-3 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-indigo-500" />
-                      <span className="text-sm font-medium text-muted-foreground">
-                        Next Renewal
-                      </span>
-                    </div>
-                    <p className="text-sm mt-1">
-                      {UserProfile.activePackage.nextRenewalDate
-                        ? new Date(
-                          UserProfile.activePackage.nextRenewalDate
-                        ).toLocaleDateString()
-                        : "-"}
-                    </p>
-                  </div>
-                  <div className="bg-indigo-50 p-3 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <MessageCircle className="w-4 h-4 text-indigo-500" />
-                      <span className="text-sm font-medium text-muted-foreground">
-                        Messages
-                      </span>
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {UserProfile.activePackage.usage?.totalUsedMessages || 0}{" "}
-                      / {UserProfile.activePackage.msgCount || 0}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Usage Grid */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-indigo-50 p-3 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-indigo-500" />
-                      <span className="text-sm font-medium text-muted-foreground">
-                        Templates
-                      </span>
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {UserProfile.activePackage.usage?.monthlyUsedTemplates ||
-                        0}{" "}
-                      / {UserProfile.activePackage.templateCount || 0}
-                    </p>
-                  </div>
-                  <div className="bg-indigo-50 p-3 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <User className="w-4 h-4 text-indigo-500" />
-                      <span className="text-sm font-medium text-muted-foreground">
-                        Contacts
-                      </span>
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {UserProfile.activePackage.usage?.monthlyUsedContacts ||
-                        0}{" "}
-                      / {UserProfile.activePackage.contactCount || 0}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Days Info */}
-                <div className="grid grid-cols-1 gap-4">
-                  <div className="bg-indigo-50 p-3 rounded-lg flex items-center justify-center gap-2">
-                    <Calendar className="w-5 h-5 text-indigo-500" />
-                    <h3 className="text-sm font-semibold">
-                      Total Days - {UserProfile.activePackage.day || 0} days
-                    </h3>
-                  </div>
-                  <div className="bg-indigo-50 p-3 rounded-lg flex items-center justify-center gap-2">
-                    <Calendar className="w-5 h-5 text-indigo-500" />
-                    <h3 className="text-sm font-semibold">
-                      Days Until Renewal -{" "}
-                      {calculatedDaysLeft} days
-                    </h3>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card className="card-elegant">
-              <CardHeader>
-                <CardTitle>No Active Package</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
-                User has no active package at the moment.
-              </CardContent>
-            </Card>
-          )}
+                <Button
+                  variant="outline"
+                  className="h-16 justify-start gap-3 px-4 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all"
+                  onClick={() => navigate("/contacts")}
+                >
+                  <Users className="w-5 h-5 text-primary shrink-0" />
+                  <span className="font-medium text-sm">Add Contacts</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-16 justify-start gap-3 px-4 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all"
+                  onClick={() => navigate("/groups")}
+                >
+                  <Users className="w-5 h-5 text-primary shrink-0" />
+                  <span className="font-medium text-sm">Create Groups</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-16 justify-start gap-3 px-4 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all"
+                  onClick={() => navigate("/bulk-send")}
+                >
+                  <MessageSquare className="w-5 h-5 text-primary shrink-0" />
+                  <span className="font-medium text-sm">Bulk Send</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-16 justify-start gap-3 px-4 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all"
+                  onClick={() => navigate("/media")}
+                >
+                  <Folder className="w-5 h-5 text-primary shrink-0" />
+                  <span className="font-medium text-sm">Media Library</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-16 justify-start gap-3 px-4 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all"
+                  onClick={() => navigate("/reports")}
+                >
+                  <BarChart3 className="w-5 h-5 text-primary shrink-0" />
+                  <span className="font-medium text-sm">Reports</span>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
-
-      {/* Quick Actions */}
-      <Card className="card-elegant mt-6">
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-          <CardDescription>Get started with common tasks</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button
-              variant="outline"
-              className="h-20 flex-col space-y-2"
-              onClick={() => navigate("/contacts")}
-            >
-              <Users className="w-6 h-6" />
-              <span>Add Contacts</span>
-            </Button>
-            <Button
-              variant="outline"
-              className="h-20 flex-col space-y-2"
-              onClick={() => navigate("/templates")}
-            >
-              <FileText className="w-6 h-6" />
-              <span>Create Template</span>
-            </Button>
-            <Button
-              variant="outline"
-              className="h-20 flex-col space-y-2"
-              onClick={() => navigate("/settings")}
-            >
-              <AlertTriangle className="w-6 h-6" />
-              <span>Configure API</span>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };

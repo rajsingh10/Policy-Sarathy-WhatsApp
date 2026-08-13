@@ -24,7 +24,7 @@ export const RequestedTemplateGuide = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="container mx-auto space-y-6 px-4">
+    <div className="container mx-auto space-y-6 px-0 sm:px-6 lg:px-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-3 space-y-3 sm:space-y-0 mb-3">
         <div className="flex items-center space-x-3">
           <Button

@@ -124,7 +124,7 @@ export const Header = ({ onMenuClick }) => {
                         <Calendar className="w-4 h-4 text-emerald-500" />
                         <span className="text-xs text-muted-foreground font-medium">Renewal</span>
                       </div>
-                      <span className="font-bold text-sm pl-6">{profile.activePackage.endDate ? new Date(profile.activePackage.endDate).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : 'N/A'}</span>
+                      <span className="font-bold text-sm pl-6">{profile.activePackage.endDate ? new Date(profile.activePackage.endDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : 'N/A'}</span>
                     </div>
 
                     {/* <div className="flex flex-col p-3 bg-green-50/50 rounded-xl">

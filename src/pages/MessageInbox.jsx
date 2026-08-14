@@ -80,7 +80,7 @@ const VideoThumbnail = ({ message }) => {
 
     React.useEffect(() => {
         if (!videoRef.current) return;
-        
+
         // Auto-pause when scrolled out of view
         const observer = new IntersectionObserver(
             (entries) => {
@@ -100,7 +100,7 @@ const VideoThumbnail = ({ message }) => {
     const togglePlay = (e) => {
         e.stopPropagation();
         if (!videoRef.current) return;
-        
+
         if (videoRef.current.paused) {
             videoRef.current.play().catch(console.error);
         } else {
@@ -133,7 +133,7 @@ const VideoThumbnail = ({ message }) => {
             >
                 Your browser does not support the video tag.
             </video>
-            
+
             {/* Play Button Overlay */}
             {!isPlaying && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -232,6 +232,8 @@ export const MessageInbox = () => {
     const [newMessagesCount, setNewMessagesCount] = useState(0);
     const [lastSeenMessageId, setLastSeenMessageId] = useState(null);
     const [isSendingMessage, setIsSendingMessage] = useState(false);
+    const prevLastMessageIdRef = useRef(null);
+    const currentConversationIdRef = useRef(null);
 
     // Location sharing state
     const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
@@ -453,11 +455,20 @@ export const MessageInbox = () => {
 
     useEffect(() => {
         if (!SCROLL_FEATURES_ENABLED) return;
-        // Only scroll to bottom for new messages if user hasn't scrolled up
-        // or if it's the initial load
-        const isInitialLoad = messages.length > 0 && !userHasScrolled;
-        if (isInitialLoad || !userHasScrolled) {
-            scrollToBottom(false, true); // Force scroll for new messages
+
+        if (messages.length > 0) {
+            const currentLastMessage = messages[messages.length - 1];
+            const currentLastMessageId = currentLastMessage.id || currentLastMessage._id;
+            const conversationId = selectedContact?.id;
+
+            const isNewConversation = currentConversationIdRef.current !== conversationId;
+            const isNewMessage = prevLastMessageIdRef.current !== currentLastMessageId;
+
+            if (isNewConversation || (isNewMessage && !userHasScrolled)) {
+                scrollToBottom(false, true); // Force scroll for new messages
+                prevLastMessageIdRef.current = currentLastMessageId;
+                currentConversationIdRef.current = conversationId;
+            }
         }
 
         // Also ensure we reset the bottom API trigger when new messages arrive
@@ -492,35 +503,8 @@ export const MessageInbox = () => {
         }
     }, [conversationsLoading, isInitialLoad]);
 
-    // When the user returns to the tab, pull the freshest messages immediately
-    useEffect(() => {
-        const handleFocus = () => {
-            if (selectedContact && token) {
-                dispatch(
-                    fetchConversationById({
-                        token,
-                        id: selectedContact.id,
-                        limit: 50,
-                        offset: 0,
-                    }),
-                );
-            }
-        };
-        const handleVisibility = () => {
-            if (!document.hidden) handleFocus();
-        };
-        const handleOnline = handleFocus;
-
-        window.addEventListener("focus", handleFocus);
-        document.addEventListener("visibilitychange", handleVisibility);
-        window.addEventListener("online", handleOnline);
-
-        return () => {
-            window.removeEventListener("focus", handleFocus);
-            document.removeEventListener("visibilitychange", handleVisibility);
-            window.removeEventListener("online", handleOnline);
-        };
-    }, [selectedContact?.id, token, dispatch]);
+    // Removed focus/visibility event listeners to prevent redundant API calls
+    // The regular polling interval handles keeping the messages up to date
 
     // Manage polling lifecycle with self-scheduling timeout (prevents overlapping requests)
     // Close popovers on click outside
@@ -548,26 +532,31 @@ export const MessageInbox = () => {
         const poll = async () => {
             if (cancelled) return;
             try {
-                const result = await dispatch(
-                    fetchConversationById({
-                        token,
-                        id: selectedContact.id,
-                        limit: 50,
-                        offset: 0,
-                    }),
-                ).unwrap();
+                // Only make the API call if the tab is visible
+                if (!document.hidden) {
+                    const result = await dispatch(
+                        fetchConversationById({
+                            token,
+                            id: selectedContact.id,
+                            limit: 50,
+                            offset: 0,
+                        }),
+                    ).unwrap();
 
-                if (result?.data) {
-                    const windowState = getMessagingWindowState(result.data);
-                    setMessagingWindowActive(windowState.isActive);
-                    setMessagingWindowHoursRemaining(windowState.hoursRemaining);
-                    setMessagingWindowStatus(windowState.status);
+                    if (result?.data) {
+                        const windowState = getMessagingWindowState(result.data);
+                        setMessagingWindowActive(windowState.isActive);
+                        setMessagingWindowHoursRemaining(windowState.hoursRemaining);
+                        setMessagingWindowStatus(windowState.status);
+                    }
                 }
             } catch (error) {
                 console.error("Error polling for new messages:", error);
             } finally {
                 if (!cancelled) {
-                    timerId = setTimeout(poll, POLL_INTERVAL_MS);
+                    // Slow down polling to 10s if hidden, otherwise use normal interval
+                    const nextInterval = document.hidden ? 10000 : POLL_INTERVAL_MS;
+                    timerId = setTimeout(poll, nextInterval);
                 }
             }
         };
@@ -1074,8 +1063,16 @@ export const MessageInbox = () => {
             setCurrentOffset(newOffset);
         } catch (error) {
             console.error("Error loading more messages:", error);
-        } finally {
             setIsLoadingMore(false);
+        } finally {
+            // Prevent infinite loop by briefly restoring scroll to not be exactly 0
+            setTimeout(() => {
+                const viewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
+                if (viewport && viewport.scrollTop === 0) {
+                    viewport.scrollTop = 5; // tiny offset
+                }
+                setIsLoadingMore(false);
+            }, 300);
         }
     };
 
@@ -1083,7 +1080,7 @@ export const MessageInbox = () => {
     const handleScroll = (event) => {
         // Ensure we only handle scroll events from the ScrollArea viewport
         if (!event.target.hasAttribute || !event.target.hasAttribute("data-radix-scroll-area-viewport")) return;
-        
+
         const { scrollTop, scrollHeight, clientHeight } = event.target;
 
         // Check if user has scrolled up from bottom
@@ -1191,7 +1188,7 @@ export const MessageInbox = () => {
     // Track new messages based on ID instead of length
     useEffect(() => {
         if (messages.length === 0) return;
-        
+
         if (!userHasScrolled) {
             // User is at bottom, they see everything, reset counter and update last seen
             setNewMessagesCount(0);
@@ -1224,7 +1221,7 @@ export const MessageInbox = () => {
                     <div
                         className={`
               ${selectedContact ? "hidden lg:block" : "block"}
-              lg:w-[350px] lg:flex-none transition-transform duration-300 ease-in-out relative z-0 bg-white lg:bg-transparent`}
+              h-full w-full lg:w-[350px] lg:flex-none transition-transform duration-300 ease-in-out relative z-0 bg-white lg:bg-transparent`}
                     >
                         <Card className="h-full flex flex-col card-elegant shadow-elegant relative z-50 w-full">
                             <div className="p-2 lg:p-2 border-b border-border/50 bg-gradient-to-r from-card/80 to-card/60 backdrop-blur-sm">
@@ -1289,31 +1286,10 @@ export const MessageInbox = () => {
                                                     );
                                                     setMessagingWindowStatus(windowState.status);
 
-                                                    // Fetch detailed conversation data with messages
-                                                    dispatch(
-                                                        fetchConversationById({
-                                                            token,
-                                                            id: contact.id,
-                                                            limit: 50,
-                                                            offset: 0,
-                                                        }),
-                                                    ).then((result) => {
-                                                        // Update messaging window state based on conversation data
-                                                        if (result.payload?.data) {
-                                                            const windowState = getMessagingWindowState(
-                                                                result.payload.data,
-                                                            );
-                                                            setMessagingWindowActive(windowState.isActive);
-                                                            setMessagingWindowHoursRemaining(
-                                                                windowState.hoursRemaining,
-                                                            );
-                                                            setMessagingWindowStatus(windowState.status);
-                                                        }
-                                                        // Scroll to bottom after messages are loaded
-                                                        setTimeout(() => {
-                                                            scrollToBottom(true, true); // Force scroll when selecting contact
-                                                        }, 100);
-                                                    });
+                                                    // Scroll to bottom after messages are loaded via useEffect
+                                                    setTimeout(() => {
+                                                        scrollToBottom(true, true); // Force scroll when selecting contact
+                                                    }, 500);
                                                     // Mark as read when selected
                                                     dispatch(markConversationAsRead(contact.id));
                                                     if (window.innerWidth < 1024) {
@@ -1344,7 +1320,7 @@ export const MessageInbox = () => {
                                                             <div className="flex items-center space-x-1 shrink-0 ml-2">
                                                                 {contact.is_unread && (
                                                                     <span className="bg-primary text-white text-xs rounded-full px-2 py-0.5 min-w-[20px] text-center">
-                                                                        1
+                                                                        {contact.unread_count || 1}
                                                                     </span>
                                                                 )}
                                                                 <span className="text-xs text-muted-foreground font-medium">
@@ -1571,10 +1547,7 @@ export const MessageInbox = () => {
                                     style={{ flex: 1, minHeight: 0 }}
                                 >
                                     <div
-                                        className={`space-y-2 lg:space-y-4 transition-opacity duration-200 ${SCROLL_FEATURES_ENABLED && isScrolling
-                                            ? "opacity-30"
-                                            : "opacity-100"
-                                            }`}
+                                        className="space-y-2 lg:space-y-4"
                                         style={{
                                             width: "100%",
                                             display: "flex",
@@ -1782,7 +1755,7 @@ export const MessageInbox = () => {
                                                                                         <p className="text-sm font-medium">
                                                                                             Audio Message
                                                                                         </p>
-                                                                                        <p className="text-xs text-muted-foreground flex items-center gap-2">
+                                                                                        <div className="text-xs text-muted-foreground flex items-center gap-2">
                                                                                             <Badge
                                                                                                 variant="outline"
                                                                                                 className={`text-[10px] px-2 py-0.5 ${fileBadgeClass}`}
@@ -1795,7 +1768,7 @@ export const MessageInbox = () => {
                                                                                                     message.media_filename ||
                                                                                                     "Audio"}
                                                                                             </span>
-                                                                                        </p>
+                                                                                        </div>
                                                                                     </div>
                                                                                 </div>
                                                                                 <audio

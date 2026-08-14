@@ -67,10 +67,10 @@ export const Sidebar = ({ mobileOpen, setMobileOpen }) => {
         {/* Logo */}{" "}
         <Link to="/">
           <div className="p-4 border-b border-sidebar-hover/30 flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center shrink-0">
               <MessageSquare className="w-5 h-5 text-white" />
             </div>
-            <div className="hidden lg:block">
+            <div>
               <h1 className="text-sidebar-foreground font-bold text-lg">
                 Fablead{" "}
               </h1>
@@ -103,7 +103,7 @@ export const Sidebar = ({ mobileOpen, setMobileOpen }) => {
           })}
         </nav>
         {/* Footer */}
-        <div className="p-4 border-t border-sidebar-hover/30 hidden lg:block">
+        <div className="p-4 border-t border-sidebar-hover/30">
           <div className="text-sidebar-foreground/60 text-xs text-start">
             © {new Date().getFullYear()}{" "}
             <a

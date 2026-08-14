@@ -205,7 +205,7 @@ export const Dashboard = () => {
     },
     {
       title: "Messages Sent",
-      value: (stats?.usage?.yearlyUsedMessages ?? stats?.yearlyUsedMessages ?? 0).toLocaleString(),
+      value: (stats?.usage?.messagesSent ?? stats?.messagesSent ?? 0).toLocaleString(),
       change: "+0%",
       icon: Send,
       color: "text-success",

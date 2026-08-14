@@ -27,7 +27,7 @@ export const ImageEditor = ({ file, isOpen, onClose, onSave }) => {
         const applyImage = (imgSrc, crossOrigin = null) => {
             const img = new Image();
             if (crossOrigin) img.crossOrigin = crossOrigin;
-
+            
             img.onload = () => {
                 setImageObj(img);
                 setTimeout(() => {
@@ -46,7 +46,7 @@ export const ImageEditor = ({ file, isOpen, onClose, onSave }) => {
                     setIsLoading(false);
                 }
             };
-
+            
             img.src = imgSrc;
         };
 
@@ -101,7 +101,7 @@ export const ImageEditor = ({ file, isOpen, onClose, onSave }) => {
         if (!canvas || !container || !img) return;
 
         const ctx = canvas.getContext('2d');
-
+        
         // Calculate aspect ratio to fit inside the container
         const containerWidth = container.clientWidth;
         const containerHeight = container.clientHeight;
@@ -122,7 +122,7 @@ export const ImageEditor = ({ file, isOpen, onClose, onSave }) => {
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0, drawWidth, drawHeight);
-
+        
         // Setup initial drawing styles
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
@@ -134,7 +134,7 @@ export const ImageEditor = ({ file, isOpen, onClose, onSave }) => {
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
         const rect = canvas.getBoundingClientRect();
-
+        
         // Get client coordinates whether it's a mouse or touch event
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
@@ -154,7 +154,7 @@ export const ImageEditor = ({ file, isOpen, onClose, onSave }) => {
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
         const rect = canvas.getBoundingClientRect();
-
+        
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
 
@@ -216,7 +216,7 @@ export const ImageEditor = ({ file, isOpen, onClose, onSave }) => {
                 <DialogHeader className="flex flex-row justify-between items-center shrink-0">
                     <DialogTitle>Edit Image</DialogTitle>
                 </DialogHeader>
-
+                
                 {/* Tools */}
                 <div className="flex items-center gap-4 py-2 shrink-0 border-b">
                     <div className="flex gap-2">
@@ -231,10 +231,10 @@ export const ImageEditor = ({ file, isOpen, onClose, onSave }) => {
                     </div>
                     <div className="flex items-center gap-2 ml-4">
                         <span className="text-sm font-medium">Thickness</span>
-                        <input
-                            type="range"
-                            min="1"
-                            max="20"
+                        <input 
+                            type="range" 
+                            min="1" 
+                            max="20" 
                             value={lineWidth}
                             onChange={(e) => setLineWidth(parseInt(e.target.value))}
                             className="w-24"
@@ -253,8 +253,8 @@ export const ImageEditor = ({ file, isOpen, onClose, onSave }) => {
                 </div>
 
                 {/* Canvas Container */}
-                <div
-                    ref={containerRef}
+                <div 
+                    ref={containerRef} 
                     className="flex-1 relative flex items-center justify-center bg-gray-100 overflow-hidden mt-4 rounded-md"
                 >
                     {isLoading && (

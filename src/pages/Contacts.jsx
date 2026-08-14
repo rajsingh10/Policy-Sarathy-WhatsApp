@@ -341,6 +341,7 @@ export const Contacts = () => {
   };
 
   const resetForm = () => {
+    setFormErrors({});
     setFormData({
       name: "",
       phone: "",
@@ -647,7 +648,10 @@ export const Contacts = () => {
               <Upload className="w-4 h-4 mr-2" /> Import
             </Button>
           </div>
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
+            if (!open) resetForm();
+            else setIsAddDialogOpen(true);
+          }}>
             <DialogContent className="max-h-[90vh] overflow-y-auto no-scrollbar">
               <DialogHeader>
                 <DialogTitle>

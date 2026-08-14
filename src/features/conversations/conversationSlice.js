@@ -382,34 +382,48 @@ const conversationSlice = createSlice({
                 const conversationData = response.success ? response.data : response.data || response;
 
                 if (conversationData) {
-                    // If this is the first load (offset 0), replace the conversation
+                    const selectedId = state.selected?.conversation?.id || state.selected?.id;
+                    const incomingId = conversationData.conversation?.id || conversationData.id;
+                    const isSameConversation = selectedId && incomingId && selectedId === incomingId;
+
+                    // Strictly scope messages to their conversation
+                    if (incomingId && Array.isArray(conversationData.messages)) {
+                        conversationData.messages = conversationData.messages.filter(msg => msg.conversation_id === incomingId);
+                    }
+
                     if (action.meta.arg.offset === 0) {
-                        state.selected = conversationData;
+                        if (isSameConversation) {
+                            // Merge new messages with existing ones, avoiding duplicates
+                            const existingMessages = state.selected.messages || [];
+                            const newMessages = conversationData.messages || [];
+
+                            const existingMessageIds = new Set(existingMessages.map(msg => msg.id));
+                            const trulyNewMessages = newMessages.filter(msg => !existingMessageIds.has(msg.id));
+
+                            // Update status of existing messages, but keep old media URLs to prevent flicker
+                            const updatedExisting = existingMessages.map(oldMsg => {
+                                const newMsg = newMessages.find(m => m.id === oldMsg.id);
+                                if (newMsg && newMsg.status !== oldMsg.status) {
+                                    return { ...oldMsg, status: newMsg.status };
+                                }
+                                return oldMsg;
+                            });
+
+                            state.selected = {
+                                ...conversationData,
+                                messages: [...updatedExisting, ...trulyNewMessages]
+                            };
+                        } else {
+                            // Initial load of a NEW conversation
+                            state.selected = conversationData;
+                        }
                     } else {
                         // For pagination (offset > 0), append new messages to existing ones
-                        if (state.selected && state.selected.messages && conversationData.messages) {
+                        if (isSameConversation && state.selected.messages && conversationData.messages) {
                             // Prepend new messages to the beginning of the array
                             state.selected.messages = [...conversationData.messages, ...state.selected.messages];
                         } else {
                             state.selected = conversationData;
-                        }
-                    }
-
-                    // For polling updates (real-time), merge new messages
-                    if (action.meta.arg.offset === 0 && state.selected && state.selected.id === conversationData.id) {
-                        // Merge new messages with existing ones, avoiding duplicates
-                        const existingMessages = state.selected.messages || [];
-                        const newMessages = conversationData.messages || [];
-
-                        // Create a set of existing message IDs for quick lookup
-                        const existingMessageIds = new Set(existingMessages.map(msg => msg.id));
-
-                        // Filter out messages that already exist
-                        const trulyNewMessages = newMessages.filter(msg => !existingMessageIds.has(msg.id));
-
-                        // If there are new messages, add them to the conversation
-                        if (trulyNewMessages.length > 0) {
-                            state.selected.messages = [...existingMessages, ...trulyNewMessages];
                         }
                     }
                 }

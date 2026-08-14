@@ -244,7 +244,7 @@ export const CampaignDetailsPage = () => {
       </div>
 
       {/* Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
         {/* <Card>
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-primary">
@@ -256,8 +256,8 @@ export const CampaignDetailsPage = () => {
           </CardContent>
         </Card> */}
 
-        <Card>
-          <CardContent className="px-2 py-4 sm:p-4 text-center">
+        <Card className="h-full">
+          <CardContent className="px-2 py-4 sm:p-4 text-center h-full flex flex-col justify-center">
             <div className="text-2xl font-bold text-success">
               {campaign.delivery_summary.sent}
             </div>
@@ -274,8 +274,26 @@ export const CampaignDetailsPage = () => {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="px-2 py-4 sm:p-4 text-center">
+        <Card className="h-full">
+          <CardContent className="px-2 py-4 sm:p-4 text-center h-full flex flex-col justify-center">
+            <div className="text-2xl font-bold text-blue-600">
+              {campaign.delivery_summary.read}
+            </div>
+            <div className="text-sm text-muted-foreground">Read</div>
+            <div className="text-xs text-muted-foreground">
+              {campaign.delivery_summary.total > 0
+                ? `${Math.round(
+                  (campaign.delivery_summary.read /
+                    campaign.delivery_summary.total) *
+                  100
+                )}%`
+                : "0%"}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="h-full">
+          <CardContent className="px-2 py-4 sm:p-4 text-center h-full flex flex-col justify-center">
             <div className="text-2xl font-bold text-warning">
               {campaign.delivery_summary.pending}
             </div>
@@ -292,8 +310,8 @@ export const CampaignDetailsPage = () => {
           </CardContent>
         </Card>
 
-        <Card className="col-span-2 md:col-span-1 mb-3">
-          <CardContent className="px-2 py-4 sm:p-4 text-center">
+        <Card className="h-full">
+          <CardContent className="px-2 py-4 sm:p-4 text-center h-full flex flex-col justify-center">
             <div className="text-2xl font-bold text-destructive">
               {campaign.delivery_summary.failed}
             </div>

@@ -142,7 +142,7 @@ export const ConversationDetails = () => {
           <p className="text-muted-foreground mb-4">
             The conversation you're looking for doesn't exist.
           </p>
-          <Button onClick={() => navigate("/chat")} variant="outline">
+          <Button onClick={() => navigate("/message-inbox")} variant="outline">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Chat
           </Button>
@@ -319,7 +319,7 @@ export const ConversationDetails = () => {
                     const showDate =
                       index === 0 ||
                       formatDate(message.whatsapp_timestamp) !==
-                        formatDate(messages[index - 1]?.whatsapp_timestamp);
+                      formatDate(messages[index - 1]?.whatsapp_timestamp);
 
                     return (
                       <div key={message.id}>
@@ -331,18 +331,16 @@ export const ConversationDetails = () => {
                           </div>
                         )}
                         <div
-                          className={`flex ${
-                            message.direction === "outbound"
-                              ? "justify-end"
-                              : "justify-start"
-                          }`}
+                          className={`flex ${message.direction === "outbound"
+                            ? "justify-end"
+                            : "justify-start"
+                            }`}
                         >
                           <div
-                            className={`max-w-[70%] px-4 py-3 rounded-2xl shadow-sm ${
-                              message.direction === "outbound"
-                                ? "bg-gradient-primary text-white rounded-br-md"
-                                : "bg-card border border-border/20 text-foreground rounded-bl-md"
-                            }`}
+                            className={`max-w-[70%] px-4 py-3 rounded-2xl shadow-sm ${message.direction === "outbound"
+                              ? "bg-gradient-primary text-white rounded-br-md"
+                              : "bg-card border border-border/20 text-foreground rounded-bl-md"
+                              }`}
                           >
                             {message.media_url && (
                               <img
@@ -357,11 +355,10 @@ export const ConversationDetails = () => {
                               </p>
                             )}
                             <div
-                              className={`flex items-center justify-end mt-2 space-x-1 ${
-                                message.direction === "outbound"
-                                  ? "text-white/70"
-                                  : "text-muted-foreground"
-                              }`}
+                              className={`flex items-center justify-end mt-2 space-x-1 ${message.direction === "outbound"
+                                ? "text-white/70"
+                                : "text-muted-foreground"
+                                }`}
                             >
                               <span className="text-xs font-medium">
                                 {formatTime(message.whatsapp_timestamp)}

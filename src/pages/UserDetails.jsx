@@ -87,8 +87,8 @@ const UserDetails = () => {
                   user?.status === "active"
                     ? "bg-green-100 text-green-800"
                     : user?.status === "pending"
-                    ? "bg-yellow-100 text-yellow-800"
-                    : "bg-red-100 text-red-800"
+                      ? "bg-yellow-100 text-yellow-800"
+                      : "bg-red-100 text-red-800"
                 }
               >
                 {user?.status.charAt(0).toUpperCase() + user?.status.slice(1)}
@@ -122,11 +122,10 @@ const UserDetails = () => {
               <Package className="w-5 h-5" />
               <h3 className="font-semibold text-lg">Active Package</h3>
               <Badge
-                className={`ml-auto ${
-                  new Date(activePackage?.endDate) > new Date()
+                className={`ml-auto ${new Date(activePackage?.endDate) > new Date()
                     ? "bg-green-100 text-green-800"
                     : "bg-red-100 text-red-800"
-                }`}
+                  }`}
               >
                 {new Date(activePackage?.endDate) > new Date()
                   ? "Active"
@@ -166,13 +165,13 @@ const UserDetails = () => {
                   <p className="text-sm font-medium mb-1">Messages Used</p>
                   <Progress
                     value={getUsagePercentage(
-                      activePackage?.usage?.yearlyUsedMessages ?? activePackage?.usedMsgCount ?? 0,
+                      activePackage?.usage?.messagesSent ?? activePackage?.usedMsgCount ?? 0,
                       activePackage?.msgCount
                     )}
                     className="h-3 rounded-lg"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    {activePackage?.usage?.yearlyUsedMessages ?? activePackage?.usedMsgCount ?? 0} of{" "}
+                    {activePackage?.usage?.messagesSent ?? activePackage?.usedMsgCount ?? 0} of{" "}
                     {activePackage?.msgCount} messages
                   </p>
                 </div>

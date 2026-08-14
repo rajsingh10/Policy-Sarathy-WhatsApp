@@ -36,7 +36,6 @@ import { CampaignDetailsPage } from "./components/campaigns/CampaignDetailsPage"
 import { BulkMessageSender } from "@/components/campaigns/BulkMessageSender";
 import { BulkMessageSenderedit } from "@/components/campaigns/BulkMessageSenderedit";
 import { Notifications } from "@/pages/Notifications";
-import { Chat } from "@/pages/Chat";
 import { ConversationDetails } from "@/pages/ConversationDetails";
 import { Settings } from "@/pages/Settings";
 import Reports from "./pages/Reports";
@@ -117,7 +116,6 @@ const AppRoutes = () => {
               element={<BulkMessageSenderedit />}
             />
             <Route path="notifications" element={<Notifications />} />
-            <Route path="chat" element={<Chat />} />
             <Route path="conversations/:id" element={<ConversationDetails />} />
             <Route path="settings" element={<Settings />} />
             <Route path="profile" element={<Profile />} />

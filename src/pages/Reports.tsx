@@ -25,6 +25,8 @@ import {
   Users,
   MessageSquare,
   CheckCircle,
+  CheckCheck,
+  Check,
   XCircle,
   Clock,
 } from "lucide-react";
@@ -53,15 +55,21 @@ const Reports = () => {
   }, [dispatch]);
   const flattenedData =
     data?.messages
-      ?.flatMap((row: any) =>
-        (row.contactDetails ?? []).map((contact: any) => ({
-          contactName: contact?.name || "-",
-          phone: contact?.phone || "-",
-          templateName: row.templateDetails?.name || "-",
-          sendingDate: row.sendingDate,
+      ?.flatMap((row: any) => {
+        const contacts =
+          Array.isArray(row.contactDetails) && row.contactDetails.length > 0
+            ? row.contactDetails
+            : [row];
+
+        return contacts.map((contact: any) => ({
+          contactName:
+            contact?.name || row.contactName || row.name || "-",
+          phone: contact?.phone || row.phone || row.to || row.mobileNumber || "-",
+          templateName: row.templateDetails?.name || row.templateName || "-",
+          sendingDate: row.sendingDate || row.createdAt,
           status: contact?.delivery_status?.status || row.status || "pending",
-        }))
-      )
+        }));
+      })
       ?.map((row: any, index: number) => ({
         ...row,
         sr: index + 1,
@@ -80,8 +88,16 @@ const Reports = () => {
       if (dateTo && sendingDate && sendingDate > dateTo) return false;
 
       // Status filter
-      if (statusFilter !== "all" && report.status !== statusFilter)
-        return false;
+      if (statusFilter !== "all") {
+        if (statusFilter === "completed") {
+          // If filtering by "Delivered" (completed), include all successful sub-statuses
+          if (!["completed", "delivered", "read", "sent"].includes(report.status)) {
+            return false;
+          }
+        } else if (report.status !== statusFilter) {
+          return false;
+        }
+      }
 
       // Template filter
       const templateName = report.templateName || "";
@@ -164,15 +180,15 @@ const Reports = () => {
           },
           read: {
             color: "bg-blue-600 text-white",
-            icon: CheckCircle, // or Eye
+            icon: CheckCheck,
           },
           delivered: {
             color: "bg-green-600 text-white",
-            icon: CheckCircle,
+            icon: CheckCheck,
           },
           sent: {
             color: "bg-gray-500 text-white",
-            icon: CheckCircle,
+            icon: Check,
           },
           failed: {
             color: "bg-destructive text-destructive-foreground",
@@ -311,7 +327,7 @@ const Reports = () => {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
         <Card className="card-elegant">
           <CardContent className="p-4 py-6 flex items-center justify-between">
             <div>
@@ -385,21 +401,6 @@ const Reports = () => {
           </CardContent>
         </Card>
 
-        <Card className="card-elegant col-span-2 md:col-span-1">
-          <CardContent className="p-4 py-6 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Scheduled
-              </p>
-              <p className="text-2xl font-bold text-primary ">
-                {stats.scheduled}
-              </p>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Clock className="h-6 w-6 text-primary" />
-            </div>
-          </CardContent>
-        </Card>
       </div>
       {/* <div className="py-0">
         <Card className="card-elegant">
@@ -531,7 +532,6 @@ const Reports = () => {
                 <option value="completed">Delivered</option>
                 <option value="failed">Failed</option>
                 <option value="processing">Pending</option>
-                <option value="scheduled">Scheduled</option>
               </select>
             </div>
 

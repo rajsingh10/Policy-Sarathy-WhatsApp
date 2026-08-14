@@ -391,7 +391,7 @@ const SortableTable = ({
 
       {/* 🔹 Enhanced Desktop Pagination */}
       {!shouldHidePagination && totalPages > 1 && (
-        <div className="hidden md:flex justify-between items-center p-4 border-t border-gray-100 bg-gray-50/50">
+        <div className="flex flex-col sm:flex-row justify-between items-center p-4 border-t border-gray-100 bg-gray-50/50 gap-3 sm:gap-0">
           <div className="text-sm text-muted-foreground mb-2 sm:mb-0">
             Showing {startIndex + 1}–
             {Math.min(startIndex + itemsPerPage, sortedData.length)} of{" "}

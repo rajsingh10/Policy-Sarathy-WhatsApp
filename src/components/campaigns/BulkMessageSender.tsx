@@ -597,10 +597,10 @@ export const BulkMessageSender: React.FC = () => {
         </p>
       </div> */}
 
-      <div className="grid gap-2 lg:grid-cols-[1fr_320px] xl:grid-cols-[1fr_360px] flex-1 overflow-hidden pb-20 lg:pb-14">
+      <div className="grid gap-2 lg:grid-cols-[1fr_320px] xl:grid-cols-[1fr_360px] flex-1 overflow-y-auto lg:overflow-hidden pb-20 lg:pb-14">
         {/* Configuration */}
         <div
-          className="space-y-3 sm:space-y-6 overflow-y-auto pr-2 hide-scrollbar pb-4 lg:pb-0"
+          className="space-y-3 sm:space-y-6 lg:overflow-y-auto pr-2 hide-scrollbar pb-4 lg:pb-0"
           ref={leftPanelRef}
         >
           {/* Campaign Setup */}
@@ -972,10 +972,10 @@ export const BulkMessageSender: React.FC = () => {
         {/* Summary & Send */}
         <div
           id="preview-section"
-          className="lg:col-span-1 flex flex-col h-full overflow-hidden"
+          className="lg:col-span-1 flex flex-col lg:h-full lg:overflow-hidden"
         >
           <div
-            className="flex-1 overflow-y-auto space-y-2 pr-1 hide-scrollbar pb-4 lg:pb-0"
+            className="flex-1 lg:overflow-y-auto space-y-2 pr-1 hide-scrollbar pb-4 lg:pb-0"
           >
             {/* Message Preview */}
             {selectedTemplate && (

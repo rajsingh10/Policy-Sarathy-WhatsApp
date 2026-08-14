@@ -468,7 +468,10 @@ export const Groups = () => {
         <div className="flex items-center gap-2">
           <Dialog
             open={isCreateDialogOpen}
-            onOpenChange={setIsCreateDialogOpen}
+            onOpenChange={(open) => {
+              if (!open) resetForm();
+              else setIsCreateDialogOpen(true);
+            }}
           >
             <DialogTrigger asChild>
               <Button className="bg-gradient-primary hover:shadow-glow">
